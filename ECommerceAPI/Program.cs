@@ -1,4 +1,6 @@
 using ECommerceAPI.Data;
+using ECommerceAPI.Repositories;
+using ECommerceAPI.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddSingleton<DatabaseHelper>();
+
+builder.Services.AddScoped<IRolesRepository, RolesRepository>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
