@@ -2,6 +2,7 @@ using ECommerceAPI.Data;
 using ECommerceAPI.Middleware;
 using ECommerceAPI.Repositories;
 using ECommerceAPI.Repositories.Interfaces;
+using ECommerceAPI.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,8 @@ builder.Services.AddSingleton<DatabaseHelper>();
 
 
 builder.Services.AddScoped<IRolesRepository, RolesRepository>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddSingleton<PasswordHasher>();
 
 builder.Services.AddCors(options =>
 {
