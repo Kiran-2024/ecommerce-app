@@ -3,6 +3,7 @@ using ECommerceAPI.Middleware;
 using ECommerceAPI.Repositories;
 using ECommerceAPI.Repositories.Interfaces;
 using ECommerceAPI.Helpers;
+using ECommerceAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ builder.Services.AddSingleton<DatabaseHelper>();
 builder.Services.AddScoped<IRolesRepository, RolesRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddSingleton<PasswordHasher>();
+builder.Services.AddScoped<OtpRepository>();
+builder.Services.AddScoped<EmailService>();
 
 builder.Services.AddCors(options =>
 {

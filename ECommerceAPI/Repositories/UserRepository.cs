@@ -23,22 +23,24 @@ namespace ECommerceAPI.Repositories
             var result = await ExecuteScalarAsync(query, parameters);
             return Convert.ToInt32(result) > 0;
         }
-        public async Task InsertUserAsync(string fullName, string email, string phone, string passwordHash)
+        public async Task<int> InsertUserAsync(string fullName, string email, string phone, string passwordHash)
         {
             var query = @"INSERT INTO Users 
-                          (FullName, Email, PhoneNumber, PasswordHash, CreatedAt, IsEmailVerified, IsPhoneVerified, IsActive)
-                          VALUES 
-                          (@FullName, @Email, @Phone, @PasswordHash, GETDATE(), 0, 0, 1)";
+                  (FullName, Email, PhoneNumber, PasswordHash, CreatedAt, IsEmailVerified, IsPhoneVerified, IsActive)
+                  VALUES 
+                  (@FullName, @Email, @Phone, @PasswordHash, GETDATE(), 0, 0, 1);
+                  SELECT SCOPE_IDENTITY();";
 
             var parameters = new[]
             {
-                new SqlParameter("@FullName", fullName),
-                new SqlParameter("@Email", email),
-                new SqlParameter("@Phone", phone),
-                new SqlParameter("@PasswordHash", passwordHash),
-            };
+        new SqlParameter("@FullName", fullName),
+        new SqlParameter("@Email", email),
+        new SqlParameter("@Phone", phone),
+        new SqlParameter("@PasswordHash", passwordHash),
+    };
 
-            await ExecuteNonQueryAsync(query, parameters);
+            var result = await ExecuteScalarAsync(query, parameters);
+            return Convert.ToInt32(result);
         }
     }
 }
