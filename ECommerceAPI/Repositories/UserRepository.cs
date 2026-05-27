@@ -42,5 +42,33 @@ namespace ECommerceAPI.Repositories
             var result = await ExecuteScalarAsync(query, parameters);
             return Convert.ToInt32(result);
         }
+        public async Task<(int UserId, string FullName, bool IsEmailVerified)?> GetUserByEmailAsync(string email)
+        {
+            var query = @"SELECT UserId, FullName, IsEmailVerified 
+                  FROM Users 
+                  WHERE Email = @Email AND IsActive = 1";
+
+            var parameters = new[] { new SqlParameter("@Email", email) };
+
+            var result = await ExecuteQueryAsync(query, parameters, reader => (
+                UserId: reader.GetInt32(reader.GetOrdinal("UserId")),
+                FullName: reader.GetString(reader.GetOrdinal("FullName")),
+                IsEmailVerified: reader.GetBoolean(reader.GetOrdinal("IsEmailVerified"))
+            ));
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task UpdateEmailVerifiedAsync(int userId)
+        {
+            var query = @"UPDATE Users 
+                  SET IsEmailVerified = 1 
+                  WHERE UserId = @UserId";
+
+            var parameters = new[] { new SqlParameter("@UserId", userId) };
+
+            await ExecuteNonQueryAsync(query, parameters);
+        }
+
     }
 }
