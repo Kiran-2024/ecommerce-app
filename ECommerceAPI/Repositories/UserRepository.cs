@@ -70,5 +70,30 @@ namespace ECommerceAPI.Repositories
             await ExecuteNonQueryAsync(query, parameters);
         }
 
+        public async Task<(int UserId, string FullName, string PasswordHash, string Role, bool IsEmailVerified)?> GetUserForLoginAsync(string email)
+        {
+            var query = @"
+        SELECT u.UserId, u.FullName, u.PasswordHash, u.IsEmailVerified,
+               r.RoleName
+        FROM   Users u
+        LEFT JOIN UserRoles ur ON ur.UserId = u.UserId
+        LEFT JOIN Roles r      ON r.RoleId  = ur.RoleId
+        WHERE  u.Email    = @Email
+          AND  u.IsActive = 1";
+
+            var parameters = new[] { new SqlParameter("@Email", email) };
+
+            var result = await ExecuteQueryAsync(query, parameters, reader => (
+                UserId: reader.GetInt32(reader.GetOrdinal("UserId")),
+                FullName: reader.GetString(reader.GetOrdinal("FullName")),
+                PasswordHash: reader.GetString(reader.GetOrdinal("PasswordHash")),
+                Role: reader.IsDBNull(reader.GetOrdinal("RoleName"))
+                                     ? "Customer"
+                                     : reader.GetString(reader.GetOrdinal("RoleName")),
+                IsEmailVerified: reader.GetBoolean(reader.GetOrdinal("IsEmailVerified"))
+            ));
+
+            return result.FirstOrDefault();
+        }
     }
 }

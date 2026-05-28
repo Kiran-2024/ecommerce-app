@@ -3,6 +3,7 @@ using ECommerceAPI.Helpers;
 using ECommerceAPI.Repositories;
 using ECommerceAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ECommerceAPI.Controllers
 {
@@ -14,14 +15,16 @@ namespace ECommerceAPI.Controllers
         private readonly PasswordHasher _hasher;
         private readonly OtpRepository _otpRepo;
         private readonly EmailService _emailService;
+        private readonly JwtHelper _jwtHelper;
 
         public AuthController(UserRepository userRepo, PasswordHasher hasher,
-            OtpRepository otpRepo, EmailService emailService)
+            OtpRepository otpRepo, EmailService emailService,JwtHelper jwtHelper)
         {
             _userRepo = userRepo;
             _hasher = hasher;
             _otpRepo = otpRepo;
             _emailService = emailService;
+            _jwtHelper = jwtHelper;
         }
 
         [HttpPost("register")]
@@ -105,5 +108,40 @@ namespace ECommerceAPI.Controllers
             return Ok(new { message = "OTP resent successfully." });
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // User తీసుకో
+            var user = await _userRepo.GetUserForLoginAsync(dto.Email);
+            if (user == null)
+                return Unauthorized(new { message = "Invalid email or password." });
+
+            // Email verified అయిందా check చేయి
+            if (!user.Value.IsEmailVerified)
+                return Unauthorized(new { message = "Please verify your email before logging in." });
+
+            // Password validate చేయి
+            bool isValid = _hasher.Verify(dto.Password, user.Value.PasswordHash);
+            if (!isValid)
+                return Unauthorized(new { message = "Invalid email or password." });
+
+            // JWT generate చేయి
+            string token = _jwtHelper.GenerateToken(
+                user.Value.UserId,
+                dto.Email,
+                user.Value.Role
+            );
+
+            return Ok(new LoginResponseDto
+            {
+                Token = token,
+                Email = dto.Email,
+                FullName = user.Value.FullName,
+                Role = user.Value.Role
+            });
+        }
     }
 }
