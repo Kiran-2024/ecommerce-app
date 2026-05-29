@@ -95,5 +95,18 @@ namespace ECommerceAPI.Repositories
 
             return result.FirstOrDefault();
         }
+        public async Task<bool> UpdatePasswordAsync(int userId, string newPasswordHash)
+        {
+            string query = "UPDATE Users SET PasswordHash = @PasswordHash, UpdatedAt = @UpdatedAt WHERE UserId = @UserId";
+            var parameters = new[]
+            {
+        new SqlParameter("@PasswordHash", newPasswordHash),
+        new SqlParameter("@UpdatedAt", DateTime.UtcNow),
+        new SqlParameter("@UserId", userId)
+    };
+            int rows = await ExecuteNonQueryAsync(query, parameters);
+            return rows > 0;
+        }
+       
     }
 }

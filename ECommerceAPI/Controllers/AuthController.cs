@@ -149,5 +149,49 @@ namespace ECommerceAPI.Controllers
                 Role = user.Value.Role
             });
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userRepo.GetUserByEmailAsync(dto.Email);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            if (!user.Value.IsEmailVerified)
+                return BadRequest(new { message = "Please verify your email first." });
+
+            var otpCode = OtpHelper.GenerateOtp();
+            _otpRepo.InsertOtp(user.Value.UserId, otpCode, "RESET");
+            _emailService.SendOtpEmail(dto.Email, user.Value.FullName, otpCode);
+
+            return Ok(new { message = "Password reset OTP sent to your email." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userRepo.GetUserByEmailAsync(dto.Email);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            bool isValid = _otpRepo.ValidateOtp(user.Value.UserId, dto.OtpCode, "RESET");
+            if (!isValid)
+                return BadRequest(new { message = "Invalid or expired OTP." });
+
+            _otpRepo.MarkUsedAndVerifyEmail(user.Value.UserId, dto.OtpCode, "RESET");
+
+            var newHash = _hasher.Hash(dto.NewPassword);
+            bool success = await _userRepo.UpdatePasswordAsync(user.Value.UserId, newHash);
+            if (!success)
+                return StatusCode(500, new { message = "Password update failed." });
+
+            return Ok(new { message = "Password reset successfully." });
+        }
     }
 }
