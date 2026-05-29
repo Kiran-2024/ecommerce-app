@@ -16,15 +16,17 @@ namespace ECommerceAPI.Controllers
         private readonly OtpRepository _otpRepo;
         private readonly EmailService _emailService;
         private readonly JwtHelper _jwtHelper;
+        private readonly RoleRightsRepository _roleRightsRepository;
 
         public AuthController(UserRepository userRepo, PasswordHasher hasher,
-            OtpRepository otpRepo, EmailService emailService,JwtHelper jwtHelper)
+            OtpRepository otpRepo, EmailService emailService,JwtHelper jwtHelper, RoleRightsRepository roleRightsRepository)
         {
             _userRepo = userRepo;
             _hasher = hasher;
             _otpRepo = otpRepo;
             _emailService = emailService;
             _jwtHelper = jwtHelper;
+            _roleRightsRepository = roleRightsRepository;
         }
 
         [HttpPost("register")]
@@ -129,10 +131,14 @@ namespace ECommerceAPI.Controllers
                 return Unauthorized(new { message = "Invalid email or password." });
 
             // JWT generate చేయి
+            var rights = await _roleRightsRepository.GetRightsByUserIdAsync(user.Value.UserId);
+
+            // Token generate చేయండి
             string token = _jwtHelper.GenerateToken(
                 user.Value.UserId,
                 dto.Email,
-                user.Value.Role
+                user.Value.Role,
+                rights
             );
 
             return Ok(new LoginResponseDto
