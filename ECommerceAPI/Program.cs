@@ -83,7 +83,8 @@ builder.Services.AddScoped<OtpRepository>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<RightsRepository>();       
-builder.Services.AddScoped<RoleRightsRepository>();   
+builder.Services.AddScoped<RoleRightsRepository>();
+builder.Services.AddScoped<RefreshTokenRepository>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>

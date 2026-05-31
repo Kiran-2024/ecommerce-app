@@ -2,6 +2,7 @@
 using ECommerceAPI.Helpers;
 using ECommerceAPI.Repositories;
 using ECommerceAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -17,9 +18,10 @@ namespace ECommerceAPI.Controllers
         private readonly EmailService _emailService;
         private readonly JwtHelper _jwtHelper;
         private readonly RoleRightsRepository _roleRightsRepository;
+        private readonly RefreshTokenRepository _refreshTokenRepo;
 
         public AuthController(UserRepository userRepo, PasswordHasher hasher,
-            OtpRepository otpRepo, EmailService emailService,JwtHelper jwtHelper, RoleRightsRepository roleRightsRepository)
+            OtpRepository otpRepo, EmailService emailService,JwtHelper jwtHelper, RoleRightsRepository roleRightsRepository, RefreshTokenRepository refreshTokenRepo)
         {
             _userRepo = userRepo;
             _hasher = hasher;
@@ -27,6 +29,7 @@ namespace ECommerceAPI.Controllers
             _emailService = emailService;
             _jwtHelper = jwtHelper;
             _roleRightsRepository = roleRightsRepository;
+            _refreshTokenRepo = refreshTokenRepo;
         }
 
         [HttpPost("register")]
@@ -116,24 +119,19 @@ namespace ECommerceAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // User తీసుకో
             var user = await _userRepo.GetUserForLoginAsync(dto.Email);
             if (user == null)
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            // Email verified అయిందా check చేయి
             if (!user.Value.IsEmailVerified)
                 return Unauthorized(new { message = "Please verify your email before logging in." });
 
-            // Password validate చేయి
             bool isValid = _hasher.Verify(dto.Password, user.Value.PasswordHash);
             if (!isValid)
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            // JWT generate చేయి
             var rights = await _roleRightsRepository.GetRightsByUserIdAsync(user.Value.UserId);
 
-            // Token generate చేయండి
             string token = _jwtHelper.GenerateToken(
                 user.Value.UserId,
                 dto.Email,
@@ -141,15 +139,20 @@ namespace ECommerceAPI.Controllers
                 rights
             );
 
+            // Refresh token generate + save
+            var refreshToken = _jwtHelper.GenerateRefreshToken();
+            var refreshHash = _jwtHelper.HashToken(refreshToken);
+            _refreshTokenRepo.SaveToken(user.Value.UserId, refreshHash, DateTime.UtcNow.AddDays(7));
+
             return Ok(new LoginResponseDto
             {
                 Token = token,
+                RefreshToken = refreshToken,
                 Email = dto.Email,
                 FullName = user.Value.FullName,
                 Role = user.Value.Role
             });
         }
-
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
@@ -192,6 +195,42 @@ namespace ECommerceAPI.Controllers
                 return StatusCode(500, new { message = "Password update failed." });
 
             return Ok(new { message = "Password reset successfully." });
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
+        {
+            var tokenHash = _jwtHelper.HashToken(dto.RefreshToken);
+            var stored = _refreshTokenRepo.GetByTokenHash(tokenHash);
+            if (stored == null)
+                return Unauthorized(new { message = "Invalid or expired refresh token" });
+
+            var user = await _userRepo.GetUserByIdAsync(stored.UserId);
+            if (user == null) return Unauthorized();
+
+            var rights = await _userRepo.GetUserRightsAsync(stored.UserId);
+
+            // revoke old token
+            _refreshTokenRepo.RevokeToken(tokenHash);
+
+            // issue new tokens
+            var newJwt = _jwtHelper.GenerateToken(user.Value.UserId, user.Value.FullName, user.Value.Role, rights);
+            var newRefresh = _jwtHelper.GenerateRefreshToken();
+            var newHash = _jwtHelper.HashToken(newRefresh);
+
+            _refreshTokenRepo.SaveToken(user.Value.UserId, newHash, DateTime.UtcNow.AddDays(7));
+
+            return Ok(new { accessToken = newJwt, refreshToken = newRefresh });
+        }
+
+        // POST /api/auth/logout
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout([FromBody] LogoutDto dto)
+        {
+            var tokenHash = _jwtHelper.HashToken(dto.RefreshToken);
+            _refreshTokenRepo.RevokeToken(tokenHash);
+            return Ok(new { message = "Logged out successfully" });
         }
     }
 }

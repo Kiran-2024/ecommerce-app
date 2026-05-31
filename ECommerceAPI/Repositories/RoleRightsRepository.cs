@@ -15,7 +15,7 @@ namespace ECommerceAPI.Repositories
                 FROM Rights rg
                 INNER JOIN RoleRights rr ON rr.RightId = rg.RightId
                 INNER JOIN UserRoles  ur ON ur.RoleId  = rr.RoleId
-                WHERE ur.UserId = @UserId AND rg.IsActive = 1";
+                WHERE ur.UserId = @UserId";
 
             var parameters = new[] { new SqlParameter("@UserId", userId) };
 

@@ -46,7 +46,7 @@ namespace ECommerceAPI.Repositories
         {
             var query = @"SELECT UserId, FullName, IsEmailVerified 
                   FROM Users 
-                  WHERE Email = @Email AND IsActive = 1";
+                  WHERE Email = @Email";
 
             var parameters = new[] { new SqlParameter("@Email", email) };
 
@@ -75,11 +75,10 @@ namespace ECommerceAPI.Repositories
             var query = @"
         SELECT u.UserId, u.FullName, u.PasswordHash, u.IsEmailVerified,
                r.RoleName
-        FROM   Users u
+        FROM Users u
         LEFT JOIN UserRoles ur ON ur.UserId = u.UserId
-        LEFT JOIN Roles r      ON r.RoleId  = ur.RoleId
-        WHERE  u.Email    = @Email
-          AND  u.IsActive = 1";
+        LEFT JOIN Roles r ON r.RoleId = ur.RoleId
+        WHERE u.Email = @Email";
 
             var parameters = new[] { new SqlParameter("@Email", email) };
 
@@ -88,8 +87,8 @@ namespace ECommerceAPI.Repositories
                 FullName: reader.GetString(reader.GetOrdinal("FullName")),
                 PasswordHash: reader.GetString(reader.GetOrdinal("PasswordHash")),
                 Role: reader.IsDBNull(reader.GetOrdinal("RoleName"))
-                                     ? "Customer"
-                                     : reader.GetString(reader.GetOrdinal("RoleName")),
+                             ? "Customer"
+                             : reader.GetString(reader.GetOrdinal("RoleName")),
                 IsEmailVerified: reader.GetBoolean(reader.GetOrdinal("IsEmailVerified"))
             ));
 
@@ -107,6 +106,46 @@ namespace ECommerceAPI.Repositories
             int rows = await ExecuteNonQueryAsync(query, parameters);
             return rows > 0;
         }
-       
+        public async Task<(int UserId, string FullName, string Role)?> GetUserByIdAsync(int userId)
+        {
+            var query = @"
+        SELECT u.UserId, u.FullName, r.RoleName
+        FROM Users u
+        LEFT JOIN UserRoles ur ON ur.UserId = u.UserId
+        LEFT JOIN Roles r ON r.RoleId = ur.RoleId
+        WHERE u.UserId = @UserId";
+
+            var parameters = new[] { new SqlParameter("@UserId", userId) };
+
+            var result = await ExecuteQueryAsync(query, parameters, reader => (
+                UserId: reader.GetInt32(reader.GetOrdinal("UserId")),
+                FullName: reader.GetString(reader.GetOrdinal("FullName")),
+                Role: reader.IsDBNull(reader.GetOrdinal("RoleName"))
+                             ? "Customer"
+                             : reader.GetString(reader.GetOrdinal("RoleName"))
+            ));
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<string>> GetUserRightsAsync(int userId)
+        {
+            var query = @"
+        SELECT rg.RightName
+        FROM Users u
+        LEFT JOIN UserRoles ur ON ur.UserId = u.UserId
+        LEFT JOIN RoleRights rr ON rr.RoleId = ur.RoleId
+        LEFT JOIN Rights rg ON rg.RightId = rr.RightId
+        WHERE u.UserId = @UserId";
+
+            var parameters = new[] { new SqlParameter("@UserId", userId) };
+
+            var result = await ExecuteQueryAsync(query, parameters, reader =>
+                reader.IsDBNull(reader.GetOrdinal("RightName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("RightName")));
+
+            return result.Where(r => r != null).Select(r => r!);
+        } 
     }
 }
