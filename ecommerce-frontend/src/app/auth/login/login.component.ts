@@ -30,7 +30,12 @@ export class LoginComponent {
     this.authService.login(this.form.value).subscribe({
       next: (res) => {
         this.authService.saveTokens(res.token, res.refreshToken);
-        this.router.navigate(['/home']);
+        const role = this.authService.getRole();
+        if (role === 'Admin') {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/home']);
+        }
         this.loading = false;
       },
       error: (err) => {

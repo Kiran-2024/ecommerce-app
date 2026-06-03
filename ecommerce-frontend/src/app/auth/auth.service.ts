@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
+  private readonly TOKEN_KEY = 'accessToken';
+  private readonly REFRESH_KEY = 'refreshToken';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   register(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, data);
@@ -44,24 +48,51 @@ export class AuthService {
   }
 
   saveTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem(this.TOKEN_KEY, accessToken);
+    localStorage.setItem(this.REFRESH_KEY, refreshToken);
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem('refreshToken');
+    return localStorage.getItem(this.REFRESH_KEY);
   }
 
   clearTokens(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_KEY);
   }
 
   isLoggedIn(): boolean {
     return !!this.getAccessToken();
+  }
+
+  getRole(): string | null {
+    const token = this.getAccessToken();
+    if (!token) return null;
+    try {
+      const decoded: any = jwtDecode(token);
+      return decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  hasRight(right: string): boolean {
+    const token = this.getAccessToken();
+    if (!token) return false;
+    try {
+      const decoded: any = jwtDecode(token);
+      const rights = decoded['right'] || [];
+      return rights.includes(right);
+    } catch {
+      return false;
+    }
+  }
+
+  isAdmin(): boolean {
+    return this.getRole() === 'Admin';
   }
 }
