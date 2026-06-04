@@ -85,12 +85,19 @@ builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<RightsRepository>();       
 builder.Services.AddScoped<RoleRightsRepository>();
 builder.Services.AddScoped<RefreshTokenRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+    {
+        policy.WithOrigins(
+            "http://localhost:4300",
+            "http://localhost:51680",
+            "http://localhost:61439"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
 });
 
 var app = builder.Build();
