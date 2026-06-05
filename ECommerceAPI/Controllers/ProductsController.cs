@@ -1,4 +1,6 @@
 ﻿using ECommerceAPI.Authorization;
+using ECommerceAPI.DTOs;
+using ECommerceAPI.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,36 +10,68 @@ namespace ECommerceAPI.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        // ✅ Anyone can view products (no auth needed)
+        private readonly IProductRepository _repo;
+
+        public ProductsController(IProductRepository repo)
+        {
+            _repo = repo;
+        }
+
+        // GET /api/products?page=1&pageSize=10
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult GetProducts()
+        public async Task<IActionResult> GetProducts(int page = 1, int pageSize = 10)
         {
-            return Ok(new { message = "Product list - public endpoint" });
+            var (products, totalCount) = await _repo.GetAllAsync(page, pageSize);
+            return Ok(new
+            {
+                data = products,
+                totalCount,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            });
         }
 
-        // ✅ Only users with product.create right can access
+        // GET /api/products/5
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var product = await _repo.GetByIdAsync(id);
+            if (product == null) return NotFound("Product not found");
+            return Ok(product);
+        }
+
+        // POST /api/products
         [HttpPost]
         [HasRight("product.create")]
-        public IActionResult CreateProduct()
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
         {
-            return Ok(new { message = "Product created - you have product.create right!" });
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var newId = await _repo.InsertAsync(dto);
+            return Ok(new { message = "Product created", productId = newId });
         }
 
-        // ✅ Only users with product.edit right can access
+        // PUT /api/products/5
         [HttpPut("{id}")]
         [HasRight("product.edit")]
-        public IActionResult UpdateProduct(int id)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
         {
-            return Ok(new { message = $"Product {id} updated - you have product.edit right!" });
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var success = await _repo.UpdateAsync(id, dto);
+            if (!success) return NotFound("Product not found");
+            return Ok(new { message = "Product updated" });
         }
 
-        // ✅ Only users with product.delete right can access
+        // DELETE /api/products/5
         [HttpDelete("{id}")]
         [HasRight("product.delete")]
-        public IActionResult DeleteProduct(int id)
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            return Ok(new { message = $"Product {id} deleted - you have product.delete right!" });
+            var success = await _repo.SoftDeleteAsync(id);
+            if (!success) return NotFound("Product not found");
+            return Ok(new { message = "Product deleted" });
         }
     }
 }
