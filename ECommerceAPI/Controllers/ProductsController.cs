@@ -18,11 +18,16 @@ namespace ECommerceAPI.Controllers
         }
 
         // GET /api/products?page=1&pageSize=10
+       
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetProducts(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetProducts(
+    int page = 1, int pageSize = 10,
+    string? search = null, int? categoryId = null,
+    decimal? minPrice = null, decimal? maxPrice = null)
         {
-            var (products, totalCount) = await _repo.GetAllAsync(page, pageSize);
+            var (products, totalCount) = await _repo.GetAllAsync(
+                page, pageSize, search, categoryId, minPrice, maxPrice);
             return Ok(new
             {
                 data = products,

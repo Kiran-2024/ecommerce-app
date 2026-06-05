@@ -5,8 +5,11 @@ namespace ECommerceAPI.Repositories
 {
     public interface IProductRepository
     {
-        Task<(IEnumerable<ProductDto> Products, int TotalCount)> GetAllAsync(int page, int pageSize);
-        Task<ProductDto> GetByIdAsync(int id);
+        Task<(IEnumerable<ProductDto> Products, int TotalCount)> GetAllAsync(
+            int page = 1, int pageSize = 10,
+            string? search = null, int? categoryId = null,
+            decimal? minPrice = null, decimal? maxPrice = null);
+        Task<ProductDto?> GetByIdAsync(int id);
         Task<int> InsertAsync(CreateProductDto dto);
         Task<bool> UpdateAsync(int id, UpdateProductDto dto);
         Task<bool> SoftDeleteAsync(int id);
@@ -21,31 +24,65 @@ namespace ECommerceAPI.Repositories
             _connectionString = config.GetConnectionString("DefaultConnection");
         }
 
-        public async Task<(IEnumerable<ProductDto> Products, int TotalCount)> GetAllAsync(int page, int pageSize)
+        public async Task<(IEnumerable<ProductDto> Products, int TotalCount)> GetAllAsync(
+     int page = 1, int pageSize = 10,
+     string? search = null, int? categoryId = null,
+     decimal? minPrice = null, decimal? maxPrice = null)
         {
             var list = new List<ProductDto>();
             int totalCount = 0;
             int offset = (page - 1) * pageSize;
+
+            // Dynamic WHERE build
+            var where = new List<string> { "IsActive = 1" };
+            var parameters = new List<SqlParameter>();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                where.Add("(ProductName LIKE @Search OR Description LIKE @Search)");
+                parameters.Add(new SqlParameter("@Search", $"%{search}%"));
+            }
+            if (categoryId.HasValue)
+            {
+                where.Add("CategoryId = @CategoryId");
+                parameters.Add(new SqlParameter("@CategoryId", categoryId.Value));
+            }
+            if (minPrice.HasValue)
+            {
+                where.Add("Price >= @MinPrice");
+                parameters.Add(new SqlParameter("@MinPrice", minPrice.Value));
+            }
+            if (maxPrice.HasValue)
+            {
+                where.Add("Price <= @MaxPrice");
+                parameters.Add(new SqlParameter("@MaxPrice", maxPrice.Value));
+            }
+
+            string whereClause = string.Join(" AND ", where);
 
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
 
             // Total count
             using (var countCmd = new SqlCommand(
-                "SELECT COUNT(*) FROM Products WHERE IsActive = 1", conn))
+                $"SELECT COUNT(*) FROM Products WHERE {whereClause}", conn))
             {
+                countCmd.Parameters.AddRange(parameters.Select(p =>
+                    new SqlParameter(p.ParameterName, p.Value)).ToArray());
                 totalCount = (int)await countCmd.ExecuteScalarAsync();
             }
 
             // Paged data
-            using var cmd = new SqlCommand(@"
-                SELECT ProductId, ProductName, Description, Price, DiscountPrice,
-                       Stock, ImageUrl, CategoryId, IsActive, CreatedAt
-                FROM Products
-                WHERE IsActive = 1
-                ORDER BY CreatedAt DESC
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY", conn);
+            using var cmd = new SqlCommand($@"
+        SELECT ProductId, ProductName, Description, Price, DiscountPrice,
+               Stock, ImageUrl, CategoryId, IsActive, CreatedAt
+        FROM Products
+        WHERE {whereClause}
+        ORDER BY CreatedAt DESC
+        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY", conn);
 
+            cmd.Parameters.AddRange(parameters.Select(p =>
+                new SqlParameter(p.ParameterName, p.Value)).ToArray());
             cmd.Parameters.AddWithValue("@Offset", offset);
             cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
