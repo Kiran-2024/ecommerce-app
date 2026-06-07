@@ -1,0 +1,100 @@
+<div class="product-detail-page" *ngIf="product">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a routerLink="/products">Products</a>
+    <span> / </span>
+    <span>{{ product.productName }}</span>
+  </div>
+
+  <!-- Main Product Section -->
+  <div class="product-main">
+
+    <!-- Image Section -->
+    <div class="product-image-section">
+      <div class="main-image">
+        <img
+          [src]="selectedImage || 'assets/images/no-image.png'"
+          [alt]="product.productName"
+          onerror="this.src='assets/images/no-image.png'"
+        />
+        <span class="discount-badge" *ngIf="getDiscountPercent() > 0">
+          -{{ getDiscountPercent() }}%
+        </span>
+      </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="product-info-section">
+
+      <h1 class="product-title">{{ product.productName }}</h1>
+
+      <div class="price-section">
+        <span class="current-price">
+          ₹{{ (product.discountPrice || product.price) | number: '1.2-2' }}
+        </span>
+        <span class="original-price" *ngIf="product.discountPrice && product.discountPrice < product.price">
+          ₹{{ product.price | number: '1.2-2' }}
+        </span>
+        <span class="discount-text" *ngIf="getDiscountPercent() > 0">
+          {{ getDiscountPercent() }}% OFF
+        </span>
+      </div>
+
+      <div class="stock-section">
+        <span class="in-stock" *ngIf="product.stock > 0">
+          ✅ In Stock ({{ product.stock }} available)
+        </span>
+        <span class="out-of-stock" *ngIf="product.stock === 0">
+          ❌ Out of Stock
+        </span>
+      </div>
+
+      <div class="description-section">
+        <h3>Description</h3>
+        <p>{{ product.description }}</p>
+      </div>
+
+      <div class="action-buttons">
+        <button class="add-to-cart-btn" [disabled]="product.stock === 0">
+          🛒 Add to Cart
+        </button>
+        <button class="buy-now-btn" [disabled]="product.stock === 0">
+          ⚡ Buy Now
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  <div class="related-section" *ngIf="relatedProducts.length > 0">
+    <h2>Related Products</h2>
+    <div class="related-grid">
+      <div
+        class="related-card"
+        *ngFor="let p of relatedProducts"
+        [routerLink]="['/products', p.productId]"
+      >
+        <img
+          [src]="p.imageUrl || 'assets/images/no-image.png'"
+          [alt]="p.productName"
+          onerror="this.src='assets/images/no-image.png'"
+        />
+        <h4>{{ p.productName }}</h4>
+        <span>₹{{ (p.discountPrice || p.price) | number: '1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Not Found -->
+<div class="not-found" *ngIf="!product">
+  <p>😕 Product not found!</p>
+  <a routerLink="/products">← Back to Products</a>
+</div>
+
+<ngx-spinner bdColor="rgba(0,0,0,0.3)" size="medium" color="#1D9E75" type="ball-scale-multiple">
+  <p style="color: #1D9E75; font-size: 16px;">Loading...</p>
+</ngx-spinner>
