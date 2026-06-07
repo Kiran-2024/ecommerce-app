@@ -20,6 +20,14 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+   // PRODUCTS - features/products
+  {
+    path: 'products',
+    loadComponent: () =>
+      import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent),
+    canActivate: [authGuard]
+  },
+
   {
     path: 'admin',
     canActivate: [adminGuard],

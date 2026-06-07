@@ -1,0 +1,122 @@
+<div class="product-list-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Our Products</h1>
+    <p>Discover our wide range of products</p>
+  </div>
+
+  <div class="content-wrapper">
+
+    <!-- Filter Sidebar -->
+    <aside class="filter-sidebar">
+      <div class="filter-header">
+        <h3>Filters</h3>
+        <button class="clear-btn" (click)="clearFilters()">Clear All</button>
+      </div>
+
+      <!-- Search -->
+      <div class="filter-group">
+        <label>Search</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          placeholder="Search products..."
+          (keyup.enter)="onSearch()"
+          class="filter-input"
+        />
+      </div>
+
+      <!-- Category -->
+      <div class="filter-group">
+        <label>Category</label>
+        <select [(ngModel)]="filters.categoryId" (change)="onFilterChange()" class="filter-input">
+          <option [ngValue]="undefined">All Categories</option>
+          <option *ngFor="let cat of categories" [ngValue]="cat.categoryId">
+            {{ cat.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Price Range -->
+      <div class="filter-group">
+        <label>Min Price (₹)</label>
+        <input
+          type="number"
+          [(ngModel)]="filters.minPrice"
+          placeholder="0"
+          (change)="onFilterChange()"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Max Price (₹)</label>
+        <input
+          type="number"
+          [(ngModel)]="filters.maxPrice"
+          placeholder="100000"
+          (change)="onFilterChange()"
+          class="filter-input"
+        />
+      </div>
+
+      <!-- Sort -->
+      <div class="filter-group">
+        <label>Sort By</label>
+        <select [(ngModel)]="filters.sortBy" (change)="onFilterChange()" class="filter-input">
+          <option value="name">Name</option>
+          <option value="price">Price</option>
+          <option value="stock">Stock</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Sort Order</label>
+        <select [(ngModel)]="filters.sortOrder" (change)="onFilterChange()" class="filter-input">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </div>
+
+      <button class="search-btn" (click)="onSearch()">Search</button>
+    </aside>
+
+    <!-- Product Grid -->
+    <div class="product-content">
+
+      <!-- Results Info -->
+      <div class="results-info">
+        <span>{{ totalCount }} Products Found</span>
+      </div>
+
+      <!-- No Products -->
+      <div class="no-products" *ngIf="products.length === 0">
+        <p>😕 No products found. Try different filters!</p>
+      </div>
+
+      <!-- Grid -->
+      <div class="product-grid" *ngIf="products.length > 0">
+        <app-product-card
+          *ngFor="let product of products | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalCount }"
+          [product]="product">
+        </app-product-card>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="totalCount > pageSize">
+        <pagination-controls
+          (pageChange)="onPageChange($event)"
+          previousLabel="Prev"
+          nextLabel="Next">
+        </pagination-controls>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<ngx-spinner bdColor="rgba(0,0,0,0.3)" size="medium" color="#1D9E75" type="ball-scale-multiple">
+  <p style="color: #1D9E75; font-size: 16px;">Loading...</p>
+</ngx-spinner>

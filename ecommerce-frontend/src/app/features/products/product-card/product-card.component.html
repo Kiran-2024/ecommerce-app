@@ -1,0 +1,21 @@
+<div class="product-card" [routerLink]="['/products', product.productId]">
+  <div class="product-image">
+    <img
+      [src]="product.imageUrl || 'assets/images/no-image.png'"
+      [alt]="product.productName"
+      onerror="this.src='assets/images/no-image.png'"
+    />
+  </div>
+
+  <div class="product-info">
+    <span class="category-badge">{{ product.categoryName }}</span>
+    <h3 class="product-name">{{ product.productName }}</h3>
+    <p class="product-description">{{ product.description }}</p>
+    <div class="product-footer">
+      <span class="product-price">₹{{ product.price | number: '1.2-2' }}</span>
+      <span class="stock-badge" [class.out-of-stock]="product.stock === 0">
+        {{ product.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+      </span>
+    </div>
+  </div>
+</div>
