@@ -13,6 +13,8 @@ namespace ECommerceAPI.Repositories
         Task<int> InsertAsync(CreateProductDto dto);
         Task<bool> UpdateAsync(int id, UpdateProductDto dto);
         Task<bool> SoftDeleteAsync(int id);
+
+        Task<bool> UpdateImageUrlAsync(int id, string imageUrl);
     }
 
     public class ProductRepository : IProductRepository
@@ -188,6 +190,18 @@ namespace ECommerceAPI.Repositories
                 IsActive = (bool)reader["IsActive"],
                 CreatedAt = (DateTime)reader["CreatedAt"]
             };
+        }
+
+        public async Task<bool> UpdateImageUrlAsync(int id, string imageUrl)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string query = "UPDATE Products SET ImageUrl = @ImageUrl WHERE ProductId = @Id";
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@ImageUrl", imageUrl);
+            command.Parameters.AddWithValue("@Id", id);
+            await connection.OpenAsync();
+            var rows = await command.ExecuteNonQueryAsync();
+            return rows > 0;
         }
     }
 }

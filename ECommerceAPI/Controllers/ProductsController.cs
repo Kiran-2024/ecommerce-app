@@ -78,5 +78,36 @@ namespace ECommerceAPI.Controllers
             if (!success) return NotFound("Product not found");
             return Ok(new { message = "Product deleted" });
         }
+
+        [HttpPost("{id}/upload-image")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadImage(int id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file provided" });
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest(new { message = "Only jpg, jpeg, png, webp allowed" });
+
+            var fileName = $"product_{id}_{Guid.NewGuid()}{extension}";
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var imageUrl = $"/images/{fileName}";
+            var updated = await _repo.UpdateImageUrlAsync(id, imageUrl);
+
+            if (!updated)
+                return NotFound(new { message = "Product not found" });
+
+            return Ok(new { imageUrl });
+        }
     }
 }
