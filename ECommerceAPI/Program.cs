@@ -87,6 +87,7 @@ builder.Services.AddScoped<RoleRightsRepository>();
 builder.Services.AddScoped<RefreshTokenRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
