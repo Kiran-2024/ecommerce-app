@@ -1,10 +1,10 @@
 <div class="product-card" [routerLink]="['/products', product.productId]">
   <div class="product-image">
-    <img
-      [src]="product.imageUrl || 'assets/images/no-image.png'"
-      [alt]="product.productName"
-      onerror="this.src='assets/images/no-image.png'"
-    />
+  <img
+  [src]="fullImageUrl"
+  [alt]="product.productName"
+  onerror="this.src='assets/images/no-image.png'"
+/>
   </div>
 
   <div class="product-info">

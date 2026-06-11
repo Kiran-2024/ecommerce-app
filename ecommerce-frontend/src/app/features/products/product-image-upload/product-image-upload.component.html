@@ -1,0 +1,40 @@
+<div class="upload-container">
+  <h3>Product Image Upload</h3>
+
+  <div class="preview-box" *ngIf="previewUrl">
+    <img [src]="previewUrl" alt="Preview" />
+  </div>
+
+  <div class="preview-box placeholder" *ngIf="!previewUrl">
+    <span>No image selected</span>
+  </div>
+
+  <input
+    type="file"
+    accept=".jpg,.jpeg,.png,.webp"
+    (change)="onFileSelected($event)"
+    #fileInput
+    hidden
+  />
+
+  <div class="actions">
+    <button class="btn-select" (click)="fileInput.click()">
+      Choose Image
+    </button>
+    <button
+      class="btn-upload"
+      (click)="uploadImage()"
+      [disabled]="!selectedFile || uploading"
+    >
+      {{ uploading ? 'Uploading...' : 'Upload' }}
+    </button>
+  </div>
+
+  <div class="success-msg" *ngIf="uploadedImageUrl">
+    ✅ Uploaded! <a [href]="uploadedImageUrl" target="_blank">View Image</a>
+  </div>
+
+  <div class="error-msg" *ngIf="errorMessage">
+    ❌ {{ errorMessage }}
+  </div>
+</div>

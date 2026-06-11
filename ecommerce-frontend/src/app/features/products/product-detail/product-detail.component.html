@@ -29,17 +29,10 @@
 
       <h1 class="product-title">{{ product.productName }}</h1>
 
-      <div class="price-section">
-        <span class="current-price">
-          ₹{{ (product.discountPrice || product.price) | number: '1.2-2' }}
-        </span>
-        <span class="original-price" *ngIf="product.discountPrice && product.discountPrice < product.price">
-          ₹{{ product.price | number: '1.2-2' }}
-        </span>
-        <span class="discount-text" *ngIf="getDiscountPercent() > 0">
-          {{ getDiscountPercent() }}% OFF
-        </span>
-      </div>
+     <app-product-image-upload
+  *ngIf="isAdmin"
+  [productId]="product.productId">
+</app-product-image-upload>
 
       <div class="stock-section">
         <span class="in-stock" *ngIf="product.stock > 0">

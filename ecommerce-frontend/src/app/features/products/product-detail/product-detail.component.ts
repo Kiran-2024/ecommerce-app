@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { ProductService, Product } from '../product.service';
+import { ProductImageUploadComponent } from '../product-image-upload/product-image-upload.component';
+import { AuthService } from '../../../auth/auth.service';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgxSpinnerModule],
+  imports: [CommonModule, RouterModule, NgxSpinnerModule, ProductImageUploadComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss']
 })
@@ -16,14 +18,17 @@ export class ProductDetailComponent implements OnInit {
   product: Product | null = null;
   relatedProducts: Product[] = [];
   selectedImage: string = '';
+  isAdmin = false;
 
   constructor(
     private route: ActivatedRoute,
     private productService: ProductService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
     this.route.params.subscribe(params => {
       const id = +params['id'];
       this.loadProduct(id);
