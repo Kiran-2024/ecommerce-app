@@ -1,100 +1,95 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { TokenHelper } from '../helpers/token.helpers';
+import { jwtDecode } from 'jwt-decode';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
-
-  private apiUrl = environment.apiUrl + '/auth';
-  private readonly TOKEN_KEY = 'jwt_token';
-  private readonly REFRESH_KEY = 'refresh_token';
+  private apiUrl = `${environment.apiUrl}/api/auth`;
+  private readonly TOKEN_KEY = 'accessToken';
+  private readonly REFRESH_KEY = 'refreshToken';
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  register(dto: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, dto);
+  register(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, data);
   }
 
-  verifyOtp(data: { email: string; otp: string; type: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify-otp`, data);
+  verifyOtp(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-email-otp`, data);
   }
 
-  resendOtp(data: { email: string; type: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/resend-otp`, data);
+  resendOtp(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/resend-otp`, { email });
   }
 
-  login(dto: { email: string; password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, dto).pipe(
-      tap((res: any) => {
-        if (res?.token) {
-          localStorage.setItem(this.TOKEN_KEY, res.token);
-          localStorage.setItem(this.REFRESH_KEY, res.refreshToken);
-        }
-      })
-    );
+  login(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login`, data);
   }
 
   forgotPassword(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { email });
   }
 
-  resetPassword(dto: { email: string; otp: string; newPassword: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, dto);
+  resetPassword(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, data);
   }
 
-  refreshToken(): Observable<any> {
-    const refreshToken = localStorage.getItem(this.REFRESH_KEY);
-    return this.http.post(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
-      tap((res: any) => {
-        if (res?.token) {
-          localStorage.setItem(this.TOKEN_KEY, res.token);
-          localStorage.setItem(this.REFRESH_KEY, res.refreshToken);
-        }
-      })
-    );
+  refreshAccessToken(refreshToken: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/refresh-token`, { refreshToken });
   }
 
-  logout(): void {
-    const refreshToken = localStorage.getItem(this.REFRESH_KEY);
-    this.http.post(`${this.apiUrl}/logout`, { refreshToken }).subscribe();
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_KEY);
-    this.router.navigate(['/auth/login']);
+  logout(refreshToken: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/logout`, { refreshToken });
   }
 
-  getToken(): string | null {
+  saveTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem(this.TOKEN_KEY, accessToken);
+    localStorage.setItem(this.REFRESH_KEY, refreshToken);
+  }
+
+  getAccessToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  isLoggedIn(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-    return !TokenHelper.isTokenExpired(token);
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_KEY);
   }
 
-  getCurrentUser(): any {
-    const token = this.getToken();
-    if (!token) return null;
-    return {
-      userId: TokenHelper.getUserId(token),
-      email: TokenHelper.getEmail(token),
-      role: TokenHelper.getRole(token),
-      rights: TokenHelper.getRights(token)
-    };
+  clearTokens(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_KEY);
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getAccessToken();
   }
 
   getRole(): string | null {
-    const token = this.getToken();
-    return token ? TokenHelper.getRole(token) : null;
+    const token = this.getAccessToken();
+    if (!token) return null;
+    try {
+      const decoded: any = jwtDecode(token);
+      return decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || null;
+    } catch {
+      return null;
+    }
   }
 
   hasRight(right: string): boolean {
-    const token = this.getToken();
+    const token = this.getAccessToken();
     if (!token) return false;
-    return TokenHelper.getRights(token).includes(right);
+    try {
+      const decoded: any = jwtDecode(token);
+      const rights = decoded['right'] || [];
+      return rights.includes(right);
+    } catch {
+      return false;
+    }
   }
 
   isAdmin(): boolean {

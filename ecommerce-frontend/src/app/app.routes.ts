@@ -33,6 +33,12 @@ export const routes: Routes = [
       import('./features/products/product-detail/product-detail.component').then(m => m.ProductDetailComponent),
     canActivate: [authGuard]
   },
+  {
+  path: 'cart',
+  loadComponent: () =>
+    import('./features/cart/cart/cart.component').then(m => m.CartComponent),
+  canActivate: [authGuard]
+},
 
   {
     path: 'admin',

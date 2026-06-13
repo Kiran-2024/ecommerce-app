@@ -1,0 +1,36 @@
+<nav class="navbar">
+  <div class="nav-container">
+
+    <!-- Logo -->
+    <a routerLink="/home" class="nav-logo">
+      🛒 ECommerce
+    </a>
+
+    <!-- Nav Links -->
+    <ul class="nav-links">
+      <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
+      <li><a routerLink="/products" routerLinkActive="active">Products</a></li>
+      <li *ngIf="isAdminUser">
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      </li>
+    </ul>
+
+    <!-- Right Side -->
+    <div class="nav-right">
+
+      <!-- Cart Icon with Badge -->
+      <a routerLink="/cart" class="cart-icon" *ngIf="isLoggedIn">
+        🛒
+        <span class="cart-badge">
+          {{ cartCount$ | async }}
+        </span>
+      </a>
+
+      <!-- Logout -->
+      <button *ngIf="isLoggedIn" class="btn-logout" (click)="logout()">
+        Logout
+      </button>
+
+    </div>
+  </div>
+</nav>
