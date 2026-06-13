@@ -1,0 +1,91 @@
+<div class="address-book">
+  <div class="address-header">
+    <h2>My Addresses</h2>
+    <button class="btn-add" (click)="openAddForm()">+ Add New Address</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">Loading...</div>
+
+  <!-- Address List -->
+  <div *ngIf="!loading && !showForm">
+    <div *ngIf="addresses.length === 0" class="no-address">
+      No addresses found. Add a new address!
+    </div>
+
+    <div class="address-grid">
+      <div class="address-card" *ngFor="let address of addresses">
+        <div class="address-badge" *ngIf="address.isDefault">
+          ✅ Default
+        </div>
+        <p><strong>{{ address.fullName }}</strong></p>
+        <p>{{ address.phoneNumber }}</p>
+        <p>{{ address.addressLine1 }}</p>
+        <p *ngIf="address.addressLine2">{{ address.addressLine2 }}</p>
+        <p>{{ address.city }}, {{ address.state }} - {{ address.pinCode }}</p>
+
+        <div class="address-actions">
+          <button class="btn-edit" (click)="openEditForm(address)">Edit</button>
+          <button class="btn-delete" (click)="deleteAddress(address.addressId)">Delete</button>
+          <button class="btn-default" *ngIf="!address.isDefault" (click)="setDefault(address.addressId)">
+            Set Default
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Form -->
+  <div *ngIf="showForm" class="address-form">
+    <h3>{{ editingId ? 'Edit Address' : 'Add New Address' }}</h3>
+    <form [formGroup]="addressForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" formControlName="fullName" placeholder="Full Name" />
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="text" formControlName="phoneNumber" placeholder="Phone Number" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Address Line 1 *</label>
+        <input type="text" formControlName="addressLine1" placeholder="House No, Street" />
+      </div>
+
+      <div class="form-group">
+        <label>Address Line 2</label>
+        <input type="text" formControlName="addressLine2" placeholder="Landmark (Optional)" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>City *</label>
+          <input type="text" formControlName="city" placeholder="City" />
+        </div>
+        <div class="form-group">
+          <label>State *</label>
+          <input type="text" formControlName="state" placeholder="State" />
+        </div>
+        <div class="form-group">
+          <label>Pin Code *</label>
+          <input type="text" formControlName="pinCode" placeholder="Pin Code" />
+        </div>
+      </div>
+
+      <div class="form-check">
+        <input type="checkbox" formControlName="isDefault" id="isDefault" />
+        <label for="isDefault">Set as Default Address</label>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-save" (click)="saveAddress()">
+          {{ editingId ? 'Update' : 'Save' }} Address
+        </button>
+        <button class="btn-cancel" (click)="cancel()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -11,6 +11,11 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./auth/auth.module').then(m => m.AuthModule)
   },
+ {
+  path: 'addresses',
+  loadComponent: () => import('./features/address/address-book/address-book.component').then(m => m.AddressBookComponent),
+  canActivate: [authGuard]
+},
 
   // HOME - home/home/home.component
   {
