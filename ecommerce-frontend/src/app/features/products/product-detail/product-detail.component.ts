@@ -1,3 +1,5 @@
+import { Router } from '@angular/router';
+import { CartService } from '../../cart/cart.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -24,7 +26,9 @@ export class ProductDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private productService: ProductService,
     private spinner: NgxSpinnerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cartService: CartService,  // ← add
+    private router: Router 
   ) {}
 
   ngOnInit(): void {
@@ -62,4 +66,27 @@ export class ProductDetailComponent implements OnInit {
     if (!this.product || !this.product.discountPrice) return 0;
     return Math.round(((this.product.price - this.product.discountPrice) / this.product.price) * 100);
   }
+  addToCart(): void {
+  if (!this.product) return;
+  this.cartService.addItem(this.product.productId, 1).subscribe({
+    next: () => {
+      alert('✅ Product added to cart!');
+    },
+    error: (err) => {
+      alert(err.error?.message || '❌ Failed to add to cart.');
+    }
+  });
+}
+
+buyNow(): void {
+  if (!this.product) return;
+  this.cartService.addItem(this.product.productId, 1).subscribe({
+    next: () => {
+      this.router.navigate(['/checkout']);
+    },
+    error: (err) => {
+      alert(err.error?.message || '❌ Failed to add to cart.');
+    }
+  });
+}
 }

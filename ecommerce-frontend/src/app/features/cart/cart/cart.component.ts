@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CartService, CartItem, CartResponse } from '../cart.service';
 import { environment } from '../../../../environments/environment';
 
@@ -16,7 +16,9 @@ export class CartComponent implements OnInit {
   total: number = 0;
   loading = false;
 
-  constructor(private cartService: CartService) {}
+  constructor(private cartService: CartService,
+    private router:Router
+  ) {}
 
   ngOnInit(): void {
     this.loadCart();
@@ -59,5 +61,9 @@ export class CartComponent implements OnInit {
   getImageUrl(imageUrl: string | null): string {
     if (!imageUrl) return 'assets/images/no-image.png';
     return `${environment.apiUrl}${imageUrl}`;
+  }
+
+  goToCheckout(): void {
+  this.router.navigate(['/checkout']);
   }
 }

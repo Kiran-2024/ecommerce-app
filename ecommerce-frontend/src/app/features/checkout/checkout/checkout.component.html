@@ -1,0 +1,84 @@
+<div class="checkout-container">
+  <h2 class="page-title">🛒 Checkout</h2>
+
+  <div class="checkout-grid">
+
+    <!-- LEFT: Address + Payment -->
+    <div class="checkout-left">
+
+      <!-- Address Section -->
+      <div class="section-card">
+        <h3>📍 Delivery Address</h3>
+
+        <div *ngIf="addresses.length === 0" class="no-address">
+          <p>No addresses found.</p>
+          <button class="btn-link" (click)="goToAddressBook()">+ Add New Address</button>
+        </div>
+
+        <div *ngFor="let addr of addresses"
+             class="address-card"
+             [class.selected]="selectedAddressId === addr.addressId"
+             (click)="selectAddress(addr.addressId)">
+          <div class="address-radio">
+            <input type="radio" [checked]="selectedAddressId === addr.addressId" readonly />
+          </div>
+          <div class="address-info">
+            <p class="addr-name">{{ addr.fullName }}</p>
+            <p class="addr-line">{{ addr.addressLine1 }}, {{ addr.addressLine2 }}</p>
+            <p class="addr-line">{{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}</p>
+            <p class="addr-phone">📞 {{ addr.phone }}</p>
+            <span *ngIf="addr.isDefault" class="default-badge">Default</span>
+          </div>
+        </div>
+
+        <button class="btn-link mt-2" (click)="goToAddressBook()">+ Add New Address</button>
+      </div>
+
+      <!-- Payment Method Section -->
+      <div class="section-card">
+        <h3>💳 Payment Method</h3>
+
+        <div class="payment-options">
+          <label class="payment-option" [class.selected]="paymentMethod === 'COD'">
+            <input type="radio" name="payment" value="COD"
+                   [(ngModel)]="paymentMethod" />
+            <span>💵 Cash on Delivery (COD)</span>
+          </label>
+
+          <label class="payment-option" [class.selected]="paymentMethod === 'Online'">
+            <input type="radio" name="payment" value="Online"
+                   [(ngModel)]="paymentMethod" />
+            <span>💳 Online Payment (Razorpay)</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Order Summary -->
+    <div class="checkout-right">
+      <div class="section-card order-summary">
+        <h3>🧾 Order Summary</h3>
+
+        <div *ngFor="let item of cartItems" class="summary-item">
+          <img [src]="getImageUrl(item.imageUrl)" [alt]="item.productName" />
+          <div class="item-info">
+            <p class="item-name">{{ item.productName }}</p>
+            <p class="item-qty">Qty: {{ item.quantity }}</p>
+          </div>
+          <p class="item-price">₹{{ item.price * item.quantity }}</p>
+        </div>
+
+        <hr />
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>₹{{ subtotal }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span class="free">FREE</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span>₹{{ subtotal }}</span>

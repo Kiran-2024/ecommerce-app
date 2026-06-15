@@ -50,7 +50,7 @@
         <span>Total</span>
         <span>₹{{ total | number: '1.2-2' }}</span>
       </div>
-      <button class="btn-checkout" routerLink="/checkout">
+      <button class="btn-checkout" routerLink="/checkout" (click)="goToCheckout()">
         Proceed to Checkout
       </button>
       <button class="btn-clear" (click)="clearCart()">

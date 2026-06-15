@@ -84,5 +84,15 @@ export const routes: Routes = [
       import('./shared/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   },
 
+  {
+  path: 'checkout',
+  loadComponent: () =>
+    import('./features/checkout/checkout/checkout.component').then(
+      m => m.CheckoutComponent
+    ),
+  canActivate: [authGuard]
+},
+
   { path: '**', redirectTo: 'auth/login' }
+
 ];
