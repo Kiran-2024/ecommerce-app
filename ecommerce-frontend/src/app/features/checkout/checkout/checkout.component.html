@@ -25,8 +25,8 @@
           <div class="address-info">
             <p class="addr-name">{{ addr.fullName }}</p>
             <p class="addr-line">{{ addr.addressLine1 }}, {{ addr.addressLine2 }}</p>
-            <p class="addr-line">{{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}</p>
-            <p class="addr-phone">📞 {{ addr.phone }}</p>
+            <p class="addr-line">{{ addr.city }}, {{ addr.state }} - {{ addr.pinCode }}</p>
+            <p class="addr-phone">📞 {{ addr.phoneNumber }}</p>
             <span *ngIf="addr.isDefault" class="default-badge">Default</span>
           </div>
         </div>
@@ -52,6 +52,19 @@
           </label>
         </div>
       </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMsg" class="error-msg">
+        ⚠️ {{ errorMsg }}
+      </div>
+
+      <!-- Place Order Button -->
+      <button class="btn-place-order"
+              (click)="placeOrder()"
+              [disabled]="isLoading">
+        <span *ngIf="!isLoading">✅ Place Order</span>
+        <span *ngIf="isLoading">⏳ Placing Order...</span>
+      </button>
 
     </div>
 
@@ -82,3 +95,10 @@
         <div class="summary-row total">
           <span>Total</span>
           <span>₹{{ subtotal }}</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

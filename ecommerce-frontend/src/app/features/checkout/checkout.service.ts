@@ -23,6 +23,6 @@ export class CheckoutService {
   constructor(private http: HttpClient) {}
 
   placeOrder(request: PlaceOrderRequest): Observable<PlaceOrderResponse> {
-    return this.http.post<PlaceOrderResponse>(`${this.apiUrl}/api/orders`, request);
+    return this.http.post<PlaceOrderResponse>(`${this.apiUrl}/api/Order/checkout`, request);
   }
 }

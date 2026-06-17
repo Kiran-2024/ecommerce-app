@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -16,7 +16,12 @@ export class LoginComponent {
   errorMessage = '';
   loading = false;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute  // ← add chesam
+  ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -30,11 +35,20 @@ export class LoginComponent {
     this.authService.login(this.form.value).subscribe({
       next: (res) => {
         this.authService.saveTokens(res.token, res.refreshToken);
-        const role = this.authService.getRole();
-        if (role === 'Admin') {
-          this.router.navigate(['/admin']);
+        
+        // returnUrl check cheyyadam - auth guard save chesina URL
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+        
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);  // ← checkout ki return
         } else {
-          this.router.navigate(['/products']);
+          // returnUrl lekapothe role based default redirect
+          const role = this.authService.getRole();
+          if (role === 'Admin') {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/products']);
+          }
         }
         this.loading = false;
       },

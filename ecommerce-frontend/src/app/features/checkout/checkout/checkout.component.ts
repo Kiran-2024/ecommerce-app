@@ -64,7 +64,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   getImageUrl(imageUrl: string): string {
-    if (!imageUrl) return 'assets/no-image.png';
+    if (!imageUrl) return 'https://placehold.co/60x60?text=No+Image';
     if (imageUrl.startsWith('http')) return imageUrl;
     return `${environment.apiUrl}/${imageUrl}`;
   }
@@ -90,11 +90,19 @@ export class CheckoutComponent implements OnInit {
     this.checkoutService.placeOrder(request).subscribe({
       next: (res) => {
         this.isLoading = false;
+        this.cartService.clearCart().subscribe();
         this.router.navigate(['/orders', res.orderId]);
       },
       error: (err) => {
         this.isLoading = false;
+       if (err.status === 401) {
+        // Token expire — checkout ki return chesi re-login
+        this.router.navigate(['/auth/login'], { 
+          queryParams: { returnUrl: '/checkout' } 
+        });
+      } else {
         this.errorMsg = err.error?.message || 'Failed to place order. Try again.';
+      }
       }
     });
   }
