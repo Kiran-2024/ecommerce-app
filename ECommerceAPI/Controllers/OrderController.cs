@@ -1,5 +1,6 @@
 ﻿using ECommerceAPI.DTO_s;
 using ECommerceAPI.Repositories;
+using ECommerceAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -10,14 +11,19 @@ using System.Security.Claims;
 public class OrderController : ControllerBase
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly EmailService _emailService;
 
-    public OrderController(IOrderRepository orderRepository)
+    public OrderController(IOrderRepository orderRepository, EmailService emailService)
     {
         _orderRepository = orderRepository;
+        _emailService = emailService;
     }
 
     private int GetUserId() =>
         int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private string GetUserEmail() =>
+        User.FindFirstValue(ClaimTypes.Email)!;
 
     // POST: api/order/checkout
     [HttpPost("checkout")]
@@ -27,6 +33,23 @@ public class OrderController : ControllerBase
         {
             var userId = GetUserId();
             var order = await _orderRepository.CreateOrderAsync(userId, dto);
+
+            // Order confirmation email — fail aithe order ki harm cheyakudadu
+            try
+            {
+                var email = GetUserEmail();
+                var items = order.OrderItems
+                    .Select(i => (i.ProductName, i.Quantity, i.TotalPrice))
+                    .ToList();
+
+                _emailService.SendOrderConfirmation(
+                    email, "there", order.OrderId, order.TotalAmount, order.PaymentMethod ?? "N/A", items);
+            }
+            catch (Exception emailEx)
+            {
+                Console.WriteLine($"Order confirmation email failed: {emailEx.Message}");
+            }
+
             return Ok(order);
         }
         catch (Exception ex)
@@ -70,6 +93,18 @@ public class OrderController : ControllerBase
         var result = await _orderRepository.CancelOrderAsync(id, userId);
         if (!result)
             return BadRequest(new { message = "Order cannot be cancelled" });
+
+        // Status update email — fail aithe response ki harm cheyakudadu
+        try
+        {
+            var email = GetUserEmail();
+            _emailService.SendStatusUpdate(email, "there", id, "Cancelled");
+        }
+        catch (Exception emailEx)
+        {
+            Console.WriteLine($"Status update email failed: {emailEx.Message}");
+        }
+
         return Ok(new { message = "Order cancelled successfully" });
     }
 }
