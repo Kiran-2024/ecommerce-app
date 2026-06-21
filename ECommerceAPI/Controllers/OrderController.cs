@@ -37,11 +37,18 @@ public class OrderController : ControllerBase
 
     // GET: api/order/myorders
     [HttpGet("myorders")]
-    public async Task<IActionResult> GetMyOrders()
+    public async Task<IActionResult> GetMyOrders(int page = 1, int pageSize = 10)
     {
         var userId = GetUserId();
-        var orders = await _orderRepository.GetOrdersByUserAsync(userId);
-        return Ok(orders);
+        var (orders, totalCount) = await _orderRepository.GetOrdersByUserAsync(userId, page, pageSize);
+        return Ok(new
+        {
+            data = orders,
+            totalCount,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
     }
 
     // GET: api/order/{id}

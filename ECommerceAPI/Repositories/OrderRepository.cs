@@ -129,25 +129,62 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<IEnumerable<OrderResponseDto>> GetOrdersByUserAsync(int userId)
+    public async Task<(IEnumerable<OrderResponseDto> Orders, int TotalCount)> GetOrdersByUserAsync(
+          int userId, int page = 1, int pageSize = 10)
     {
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();
 
-        var orders = new Dictionary<int, OrderResponseDto>();
+        int totalCount;
 
-        var query = @"
+        // Total distinct orders count
+        var countQuery = "SELECT COUNT(*) FROM Orders WHERE UserId = @UserId";
+        using (var countCmd = new SqlCommand(countQuery, conn))
+        {
+            countCmd.Parameters.AddWithValue("@UserId", userId);
+            totalCount = (int)await countCmd.ExecuteScalarAsync();
+        }
+
+        // Paged OrderIds first (so OFFSET-FETCH works correctly with JOIN)
+        var pagedIds = new List<int>();
+        int offset = (page - 1) * pageSize;
+
+        var idsQuery = @"
+            SELECT OrderId FROM Orders
+            WHERE UserId = @UserId
+            ORDER BY CreatedAt DESC
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+        using (var idsCmd = new SqlCommand(idsQuery, conn))
+        {
+            idsCmd.Parameters.AddWithValue("@UserId", userId);
+            idsCmd.Parameters.AddWithValue("@Offset", offset);
+            idsCmd.Parameters.AddWithValue("@PageSize", pageSize);
+            using var idsReader = await idsCmd.ExecuteReaderAsync();
+            while (await idsReader.ReadAsync())
+            {
+                pagedIds.Add(idsReader.GetInt32("OrderId"));
+            }
+        }
+
+        if (pagedIds.Count == 0)
+            return (new List<OrderResponseDto>(), totalCount);
+
+        // Fetch those orders with items via JOIN
+        var orders = new Dictionary<int, OrderResponseDto>();
+        var idsParam = string.Join(",", pagedIds);
+
+        var query = $@"
             SELECT o.OrderId, o.UserId, o.AddressId, o.TotalAmount, o.OrderStatus,
                    o.PaymentStatus, o.PaymentMethod, o.CreatedAt,
                    oi.OrderItemId, oi.ProductId, p.ProductName, oi.Quantity, oi.UnitPrice, oi.TotalPrice
             FROM Orders o
             LEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId
             LEFT JOIN Products p ON oi.ProductId = p.ProductId
-            WHERE o.UserId = @UserId
+            WHERE o.OrderId IN ({idsParam})
             ORDER BY o.CreatedAt DESC";
 
         using var cmd = new SqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@UserId", userId);
         using var reader = await cmd.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
@@ -183,7 +220,10 @@ public class OrderRepository : IOrderRepository
             }
         }
 
-        return orders.Values;
+        // Preserve page order (Dictionary doesn't guarantee order)
+        var orderedResult = pagedIds.Select(id => orders[id]).ToList();
+
+        return (orderedResult, totalCount);
     }
 
     public async Task<OrderResponseDto?> GetOrderByIdAsync(int orderId, int userId)
