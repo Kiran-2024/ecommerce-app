@@ -15,7 +15,7 @@ export class ProductCardComponent {
   @Input() product!: Product;
 
   get fullImageUrl(): string {
-    if (!this.product.imageUrl) return 'assets/images/no-image.png';
+    if (!this.product.imageUrl) return environment.noImageUrl;
     return `${environment.apiUrl}${this.product.imageUrl}`;
   }
 }

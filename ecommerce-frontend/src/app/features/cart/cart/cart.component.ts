@@ -59,7 +59,7 @@ export class CartComponent implements OnInit {
   }
 
   getImageUrl(imageUrl: string | null): string {
-    if (!imageUrl) return 'assets/images/no-image.png';
+    if (!imageUrl) return environment.noImageUrl;
     return `${environment.apiUrl}${imageUrl}`;
   }
 

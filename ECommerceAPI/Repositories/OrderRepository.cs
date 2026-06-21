@@ -7,7 +7,7 @@ using System.Data;
 
 public class OrderRepository : IOrderRepository
 {
-    private readonly string _connectionString;
+    private readonly string _connectionString;  
 
     public OrderRepository(IConfiguration configuration)
     {
@@ -98,7 +98,7 @@ public class OrderRepository : IOrderRepository
 
             // 4. Cart clear చేయి
             var clearCartQuery = @"
-               DELETE FROM Cart
+               DELETE FROM CartItems
                WHERE UserId = @UserId";
 
             using (var clearCmd = new SqlCommand(clearCartQuery, conn, transaction))

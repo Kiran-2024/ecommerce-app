@@ -14,9 +14,9 @@
     <div class="product-image-section">
       <div class="main-image">
         <img
-          [src]="selectedImage || 'assets/images/no-image.png'"
+          [src]="selectedImage || 'https://placehold.co/300x300?text=No+Image'"
           [alt]="product.productName"
-          onerror="this.src='assets/images/no-image.png'"
+          onerror="this.src='https://placehold.co/300x300?text=No+Image'"
         />
         <span class="discount-badge" *ngIf="getDiscountPercent() > 0">
           -{{ getDiscountPercent() }}%
@@ -70,9 +70,9 @@
         [routerLink]="['/products', p.productId]"
       >
         <img
-          [src]="p.imageUrl || 'assets/images/no-image.png'"
+          [src]="p.imageUrl || 'https://placehold.co/300x300?text=No+Image'"
           [alt]="p.productName"
-          onerror="this.src='assets/images/no-image.png'"
+          onerror="this.src='https://placehold.co/300x300?text=No+Image'"
         />
         <h4>{{ p.productName }}</h4>
         <span>₹{{ (p.discountPrice || p.price) | number: '1.2-2' }}</span>
