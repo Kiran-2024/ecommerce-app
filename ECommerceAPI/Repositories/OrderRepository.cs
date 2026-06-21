@@ -22,12 +22,12 @@ public class OrderRepository : IOrderRepository
 
         try
         {
-            // 1. Cart items fetch చేయి
-            var cartItems = new List<(int ProductId, string ProductName, int quantity, decimal unitPrice)>();
+            // 1. Cart items fetch చేయి (Stock కూడా)
+            var cartItems = new List<(int ProductId, string ProductName, int Quantity, decimal UnitPrice, int Stock)>();
             decimal totalAmount = 0;
 
             var cartQuery = @"
-                SELECT ci.ProductId, p.ProductName, ci.Quantity, p.Price
+                SELECT ci.ProductId, p.ProductName, ci.Quantity, p.Price, p.Stock
                 FROM CartItems ci
                 JOIN Products p ON ci.ProductId = p.ProductId
                 WHERE ci.UserId = @UserId";
@@ -42,14 +42,23 @@ public class OrderRepository : IOrderRepository
                     var productName = reader.GetString("ProductName");
                     var quantity = reader.GetInt32("Quantity");
                     var unitPrice = reader.GetDecimal("Price");
+                    var stock = reader.GetInt32("Stock");
 
-                    cartItems.Add((productId, productName, quantity, unitPrice));
+                    cartItems.Add((productId, productName, quantity, unitPrice, stock));
                     totalAmount += quantity * unitPrice;
                 }
             }
 
             if (cartItems.Count == 0)
                 throw new Exception("Cart is empty");
+
+            // 1.5. Stock validation — em product ki stock chaladu ante block cheyali
+            var outOfStockItems = cartItems.Where(c => c.Quantity > c.Stock).ToList();
+            if (outOfStockItems.Any())
+            {
+                var names = string.Join(", ", outOfStockItems.Select(c => c.ProductName));
+                throw new Exception($"Insufficient stock for: {names}");
+            }
 
             // 2. Order insert చేయి
             var orderQuery = @"
@@ -67,9 +76,9 @@ public class OrderRepository : IOrderRepository
                 orderId = Convert.ToInt32(await orderCmd.ExecuteScalarAsync());
             }
 
-            // 3. OrderItems insert చేయి
+            // 3. OrderItems insert చేయి + Stock deduct చేయి
             var orderItems = new List<OrderItemResponseDto>();
-            foreach (var(productId, productName, quantity, unitPrice)  in cartItems)
+            foreach (var (productId, productName, quantity, unitPrice, stock) in cartItems)
             {
                 var itemTotal = quantity * unitPrice;
                 var itemQuery = @"
@@ -77,23 +86,37 @@ public class OrderRepository : IOrderRepository
                     VALUES (@OrderId, @ProductId, @Quantity, @UnitPrice, @TotalPrice);
                     SELECT SCOPE_IDENTITY();";
 
-                using var itemCmd = new SqlCommand(itemQuery, conn, transaction);
-                itemCmd.Parameters.AddWithValue("@OrderId", orderId);
-                itemCmd.Parameters.AddWithValue("@ProductId", productId);
-                itemCmd.Parameters.AddWithValue("@Quantity", quantity);
-                itemCmd.Parameters.AddWithValue("@UnitPrice", unitPrice);
-                itemCmd.Parameters.AddWithValue("@TotalPrice", itemTotal);
-                var orderItemId = Convert.ToInt32(await itemCmd.ExecuteScalarAsync());
-
-                orderItems.Add(new OrderItemResponseDto
+                using (var itemCmd = new SqlCommand(itemQuery, conn, transaction))
                 {
-                    OrderItemId = orderItemId,
-                    ProductId = productId,
-                    ProductName = productName,
-                    Quantity = quantity,
-                    UnitPrice = unitPrice,
-                    TotalPrice = itemTotal
-                });
+                    itemCmd.Parameters.AddWithValue("@OrderId", orderId);
+                    itemCmd.Parameters.AddWithValue("@ProductId", productId);
+                    itemCmd.Parameters.AddWithValue("@Quantity", quantity);
+                    itemCmd.Parameters.AddWithValue("@UnitPrice", unitPrice);
+                    itemCmd.Parameters.AddWithValue("@TotalPrice", itemTotal);
+                    var orderItemId = Convert.ToInt32(await itemCmd.ExecuteScalarAsync());
+
+                    orderItems.Add(new OrderItemResponseDto
+                    {
+                        OrderItemId = orderItemId,
+                        ProductId = productId,
+                        ProductName = productName,
+                        Quantity = quantity,
+                        UnitPrice = unitPrice,
+                        TotalPrice = itemTotal
+                    });
+                }
+
+                // Stock deduct చేయి
+                var stockUpdateQuery = @"
+                    UPDATE Products SET Stock = Stock - @Quantity
+                    WHERE ProductId = @ProductId";
+
+                using (var stockCmd = new SqlCommand(stockUpdateQuery, conn, transaction))
+                {
+                    stockCmd.Parameters.AddWithValue("@Quantity", quantity);
+                    stockCmd.Parameters.AddWithValue("@ProductId", productId);
+                    await stockCmd.ExecuteNonQueryAsync();
+                }
             }
 
             // 4. Cart clear చేయి
@@ -286,16 +309,52 @@ public class OrderRepository : IOrderRepository
     {
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();
+        using var transaction = conn.BeginTransaction();
 
-        var query = @"
-            UPDATE Orders 
-            SET OrderStatus = 'Cancelled'
-            WHERE OrderId = @OrderId AND UserId = @UserId AND OrderStatus = 'Pending'";
+        try
+        {
+            // 1. Order ni Pending state lo unte matrame Cancelled ki update cheyali
+            var cancelQuery = @"
+                UPDATE Orders 
+                SET OrderStatus = 'Cancelled'
+                WHERE OrderId = @OrderId AND UserId = @UserId AND OrderStatus = 'Pending'";
 
-        using var cmd = new SqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@OrderId", orderId);
-        cmd.Parameters.AddWithValue("@UserId", userId);
-        var rows = await cmd.ExecuteNonQueryAsync();
-        return rows > 0;
+            int rows;
+            using (var cancelCmd = new SqlCommand(cancelQuery, conn, transaction))
+            {
+                cancelCmd.Parameters.AddWithValue("@OrderId", orderId);
+                cancelCmd.Parameters.AddWithValue("@UserId", userId);
+                rows = await cancelCmd.ExecuteNonQueryAsync();
+            }
+
+            // Order Pending lo lekapote (already Shipped/Delivered/Cancelled) - cancel cheyaledu
+            if (rows == 0)
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+
+            // 2. Ee order item products ki Stock restore cheyali
+            var restoreStockQuery = @"
+                UPDATE p
+                SET p.Stock = p.Stock + oi.Quantity
+                FROM Products p
+                JOIN OrderItems oi ON p.ProductId = oi.ProductId
+                WHERE oi.OrderId = @OrderId";
+
+            using (var restoreCmd = new SqlCommand(restoreStockQuery, conn, transaction))
+            {
+                restoreCmd.Parameters.AddWithValue("@OrderId", orderId);
+                await restoreCmd.ExecuteNonQueryAsync();
+            }
+
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 }
