@@ -92,6 +92,14 @@ export const routes: Routes = [
     ),
   canActivate: [authGuard]
 },
+{
+  path: 'orders/:id',
+  loadComponent: () =>
+    import('./features/orders/order-detail/order-detail.component').then(
+      m => m.OrderDetailComponent
+    ),
+  canActivate: [authGuard]
+},
 
   { path: '**', redirectTo: 'auth/login' }
 

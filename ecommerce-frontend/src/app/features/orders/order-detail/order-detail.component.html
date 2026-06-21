@@ -1,0 +1,70 @@
+<div class="order-detail-container">
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>⏳ Loading order details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && errorMsg" class="error-state">
+    <p>⚠️ {{ errorMsg }}</p>
+    <button class="btn-link" (click)="goToProducts()">← Back to Products</button>
+  </div>
+
+  <!-- Order Found -->
+  <div *ngIf="!isLoading && order">
+
+    <div class="success-banner">
+      <h2>✅ Order Placed Successfully!</h2>
+      <p>Your order #{{ order.orderId }} has been confirmed.</p>
+    </div>
+
+    <div class="section-card">
+      <h3>🧾 Order #{{ order.orderId }}</h3>
+
+      <div class="order-meta">
+        <div class="meta-row">
+          <span>Order Status</span>
+          <span class="status-badge" [ngClass]="order.orderStatus.toLowerCase()">{{ order.orderStatus }}</span>
+        </div>
+        <div class="meta-row">
+          <span>Payment Method</span>
+          <span>{{ order.paymentMethod }}</span>
+        </div>
+        <div class="meta-row">
+          <span>Payment Status</span>
+          <span>{{ order.paymentStatus }}</span>
+        </div>
+        <div class="meta-row">
+          <span>Order Date</span>
+          <span>{{ order.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>📦 Items</h3>
+
+      <div *ngFor="let item of order.orderItems" class="summary-item">
+        <div class="item-info">
+          <p class="item-name">{{ item.productName }}</p>
+          <p class="item-qty">Qty: {{ item.quantity }} × ₹{{ item.unitPrice }}</p>
+        </div>
+        <p class="item-price">₹{{ item.totalPrice }}</p>
+      </div>
+
+      <hr />
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>₹{{ order.totalAmount }}</span>
+      </div>
+    </div>
+
+    <button class="btn-place-order" (click)="goToProducts()">
+      🛍️ Continue Shopping
+    </button>
+
+  </div>
+
+</div>
