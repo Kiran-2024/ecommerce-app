@@ -18,6 +18,7 @@
       <h2>✅ Order Placed Successfully!</h2>
       <p>Your order #{{ order.orderId }} has been confirmed.</p>
     </div>
+    
 
     <div class="section-card">
       <h3>🧾 Order #{{ order.orderId }}</h3>
@@ -38,6 +39,10 @@
         <div class="meta-row">
           <span>Order Date</span>
           <span>{{ order.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+        </div>
+        <div class="meta-row" *ngIf="canCancel()">
+         <span>Cancel Order</span>
+          <button class="btn-cancel" (click)="cancelOrder()">Cancel Order</button>
         </div>
       </div>
     </div>

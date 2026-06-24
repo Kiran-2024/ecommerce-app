@@ -24,6 +24,14 @@ export interface Order {
   orderItems: OrderItem[];
 }
 
+export interface OrdersResponse {
+  data: Order[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private apiUrl = environment.apiUrl;
@@ -34,7 +42,10 @@ export class OrderService {
     return this.http.get<Order>(`${this.apiUrl}/api/Order/${orderId}`);
   }
 
-  getMyOrders(): Observable<Order[]> {
-    return this.http.get<Order[]>(`${this.apiUrl}/api/Order/myorders`);
-  }
+ getMyOrders(): Observable<OrdersResponse> {
+  return this.http.get<OrdersResponse>(`${this.apiUrl}/api/Order/myorders`);
+}
+cancelOrder(orderId: number): Observable<any> {
+  return this.http.put(`${this.apiUrl}/api/Order/${orderId}/cancel`, {}, { responseType: 'text' });
+}
 }

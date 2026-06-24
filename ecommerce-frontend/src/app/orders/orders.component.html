@@ -1,0 +1,45 @@
+<div class="orders-container">
+  <h2 class="page-title">My Orders</h2>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Loading orders...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage" class="error-state">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && orders.length === 0" class="empty-state">
+    <p>No orders found.</p>
+    <a routerLink="/products">Start Shopping</a>
+  </div>
+
+  <!-- Orders List -->
+  <div *ngIf="!isLoading && orders.length > 0" class="orders-list">
+    <div class="order-card" *ngFor="let order of orders">
+      <div class="order-header">
+        <div>
+          <span class="order-id">Order #{{ order.orderId }}</span>
+          <span class="order-date">{{ order.createdAt | date:'dd MMM yyyy' }}</span>
+        </div>
+        <span class="badge" [ngClass]="getStatusClass(order.orderStatus)">
+          {{ order.orderStatus }}
+        </span>
+      </div>
+
+      <div class="order-items-preview">
+        <span *ngFor="let item of order.orderItems; let last = last">
+          {{ item.productName }} x{{ item.quantity }}<span *ngIf="!last">, </span>
+        </span>
+      </div>
+
+      <div class="order-footer">
+        <span class="order-total">Total: ₹{{ order.totalAmount }}</span>
+        <a [routerLink]="['/orders', order.orderId]" class="view-btn">View Details</a>
+      </div>
+    </div>
+  </div>
+</div>

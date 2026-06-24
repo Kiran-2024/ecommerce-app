@@ -10,6 +10,9 @@
     <ul class="nav-links">
       <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
       <li><a routerLink="/products" routerLinkActive="active">Products</a></li>
+      <li *ngIf="isLoggedIn && !isAdminUser">
+       <a routerLink="/orders" routerLinkActive="active">My Orders</a>
+      </li>
       <li *ngIf="isAdminUser">
         <a routerLink="/admin" routerLinkActive="active">Admin</a>
       </li>

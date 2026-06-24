@@ -1,0 +1,103 @@
+.orders-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1D9E75;
+  margin-bottom: 24px;
+}
+
+.loading-state, .error-state, .empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+
+  a {
+    color: #1D9E75;
+    font-weight: 600;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .order-id {
+      font-weight: 700;
+      font-size: 16px;
+      color: #333;
+      margin-right: 12px;
+    }
+
+    .order-date {
+      font-size: 13px;
+      color: #888;
+    }
+  }
+
+  .order-items-preview {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 16px;
+  }
+
+  .order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .order-total {
+      font-weight: 700;
+      font-size: 16px;
+      color: #1D9E75;
+    }
+
+    .view-btn {
+      background: #1D9E75;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      &:hover { background: #178a63; }
+    }
+  }
+}
+
+// Status Badges
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-pending   { background: #FFF3CD; color: #856404; }
+.badge-confirmed { background: #CCE5FF; color: #004085; }
+.badge-shipped   { background: #D4EDDA; color: #155724; }
+.badge-delivered { background: #D1ECF1; color: #0C5460; }
+.badge-cancelled { background: #F8D7DA; color: #721C24; }
+.badge-default   { background: #E2E3E5; color: #383D41; }

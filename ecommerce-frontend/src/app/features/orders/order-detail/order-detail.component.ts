@@ -56,4 +56,28 @@ export class OrderDetailComponent implements OnInit {
   goToProducts(): void {
     this.router.navigate(['/products']);
   }
+
+ cancelOrder(): void {
+  if (!this.order) return;
+  if (!confirm('Are you sure you want to cancel this order?')) return;
+
+  this.orderService.cancelOrder(this.order.orderId).subscribe({
+    next: () => {
+      this.order!.orderStatus = 'Cancelled';
+    },
+    error: (err: any) => {
+      if (err.status === 200) {
+        this.order!.orderStatus = 'Cancelled';
+      } else {
+        alert('Failed to cancel order. Please try again.');
+      }
+    }
+  });
+}
+
+canCancel(): boolean {
+  return this.order?.orderStatus?.toLowerCase() === 'pending';
+}
+
+  
 }
