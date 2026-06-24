@@ -69,6 +69,19 @@
         <span>₹{{ order.totalAmount }}</span>
       </div>
     </div>
+    <div class="section-card" *ngIf="statusHistory.length > 0">
+  <h3>📋 Order Timeline</h3>
+  <div class="timeline">
+    <div class="timeline-item" *ngFor="let h of statusHistory">
+      <div class="timeline-dot" [ngClass]="h.status.toLowerCase()"></div>
+      <div class="timeline-content">
+        <span class="timeline-status">{{ h.status }}</span>
+        <span class="timeline-date">{{ h.changedAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+        <span class="timeline-by" *ngIf="h.changedBy">by {{ h.changedBy }}</span>
+      </div>
+    </div>
+  </div>
+</div>
 
     <button class="btn-place-order" (click)="goToProducts()">
       🛍️ Continue Shopping

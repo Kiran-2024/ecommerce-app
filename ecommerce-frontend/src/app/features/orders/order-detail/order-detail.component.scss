@@ -156,3 +156,69 @@ hr { border: none; border-top: 1px solid #eee; margin: 14px 0; }
   cursor: pointer;
   &:hover { background: #178a63; }
 }
+
+.timeline {
+  position: relative;
+  padding-left: 24px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  .timeline-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ccc;
+    margin-left: -24px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #ccc;
+
+    &.pending    { background: #ffc107; box-shadow: 0 0 0 2px #ffc107; }
+    &.confirmed  { background: #17a2b8; box-shadow: 0 0 0 2px #17a2b8; }
+    &.shipped    { background: #007bff; box-shadow: 0 0 0 2px #007bff; }
+    &.delivered  { background: #1D9E75; box-shadow: 0 0 0 2px #1D9E75; }
+    &.cancelled  { background: #dc3545; box-shadow: 0 0 0 2px #dc3545; }
+  }
+
+  .timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .timeline-status {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .timeline-date {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .timeline-by {
+    font-size: 11px;
+    color: #aaa;
+    font-style: italic;
+  }
+}

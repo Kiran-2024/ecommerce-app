@@ -54,4 +54,7 @@ downloadInvoice(orderId: number): Observable<Blob> {
     responseType: 'blob'
   });
 }
+getOrderStatusHistory(orderId: number): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/api/Order/${orderId}/history`);
+}
 }

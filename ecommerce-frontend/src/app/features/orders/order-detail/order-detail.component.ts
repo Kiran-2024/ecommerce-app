@@ -14,6 +14,7 @@ import { environment } from '../../../../environments/environment';
 export class OrderDetailComponent implements OnInit {
 
   order: Order | null = null;
+  statusHistory: any[] = [];
   isLoading: boolean = true;
   errorMsg: string = '';
 
@@ -39,6 +40,7 @@ export class OrderDetailComponent implements OnInit {
       next: (res) => {
         this.order = res;
         this.isLoading = false;
+        this.loadStatusHistory(res.orderId);
       },
       error: () => {
         this.errorMsg = 'Failed to load order details.';
@@ -46,6 +48,17 @@ export class OrderDetailComponent implements OnInit {
       }
     });
   }
+
+loadStatusHistory(orderId: number): void {
+  this.orderService.getOrderStatusHistory(orderId).subscribe({
+    next: (history) => {
+      this.statusHistory = history;
+    },
+    error: () => {
+      this.statusHistory = [];
+    }
+  });
+}  
 
   getImageUrl(imageUrl: string): string {
     if (!imageUrl) return 'https://placehold.co/60x60?text=No+Image';
