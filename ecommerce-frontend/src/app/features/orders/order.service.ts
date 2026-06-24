@@ -48,4 +48,10 @@ export class OrderService {
 cancelOrder(orderId: number): Observable<any> {
   return this.http.put(`${this.apiUrl}/api/Order/${orderId}/cancel`, {}, { responseType: 'text' });
 }
+
+downloadInvoice(orderId: number): Observable<Blob> {
+  return this.http.get(`${this.apiUrl}/api/Order/${orderId}/invoice`, {
+    responseType: 'blob'
+  });
+}
 }

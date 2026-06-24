@@ -12,11 +12,13 @@ public class OrderController : ControllerBase
 {
     private readonly IOrderRepository _orderRepository;
     private readonly EmailService _emailService;
+    private readonly InvoiceService _invoiceService;
 
-    public OrderController(IOrderRepository orderRepository, EmailService emailService)
+    public OrderController(IOrderRepository orderRepository, EmailService emailService, InvoiceService invoiceService)
     {
         _orderRepository = orderRepository;
         _emailService = emailService;
+        _invoiceService = invoiceService;
     }
 
     private int GetUserId() =>
@@ -106,5 +108,22 @@ public class OrderController : ControllerBase
         }
 
         return Ok(new { message = "Order cancelled successfully" });
+    }
+
+    [HttpGet("{id}/invoice")]
+    [Authorize]
+    public async Task<IActionResult> GetInvoice(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out int userId))
+            return Unauthorized();
+
+        var order = await _orderRepository.GetOrderByIdAsync(id, userId);
+        if (order == null)
+            return NotFound("Order not found.");
+
+        var pdfBytes = _invoiceService.GenerateInvoice(order);
+
+        return File(pdfBytes, "application/pdf", $"Invoice_Order_{id}.pdf");
     }
 }

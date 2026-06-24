@@ -75,6 +75,23 @@ export class OrderDetailComponent implements OnInit {
   });
 }
 
+downloadInvoice(): void {
+  if (!this.order) return;
+  this.orderService.downloadInvoice(this.order.orderId).subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice_Order_${this.order!.orderId}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: () => {
+      alert('Failed to download invoice. Please try again.');
+    }
+  });
+}
+
 canCancel(): boolean {
   return this.order?.orderStatus?.toLowerCase() === 'pending';
 }
