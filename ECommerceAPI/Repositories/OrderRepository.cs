@@ -357,4 +357,42 @@ public class OrderRepository : IOrderRepository
             throw;
         }
     }
+
+    public async Task<List<OrderStatusHistory>> GetOrderStatusHistoryAsync(int orderId)
+    {
+        var list = new List<OrderStatusHistory>();
+        using var con = new SqlConnection(_connectionString);
+        await con.OpenAsync();
+        var cmd = new SqlCommand(@"
+        SELECT HistoryId, OrderId, Status, ChangedAt, ChangedBy
+        FROM OrderStatusHistory
+        WHERE OrderId = @OrderId
+        ORDER BY ChangedAt ASC", con);
+        cmd.Parameters.AddWithValue("@OrderId", orderId);
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            list.Add(new OrderStatusHistory
+            {
+                HistoryId = (int)reader["HistoryId"],
+                OrderId = (int)reader["OrderId"],
+                Status = reader["Status"].ToString()!,
+                ChangedAt = (DateTime)reader["ChangedAt"],
+                ChangedBy = reader["ChangedBy"] as string
+            });
+        }
+        return list;
+    }
+    public async Task AddOrderStatusHistoryAsync(int orderId, string status, string changedBy)
+    {
+        using var con = new SqlConnection(_connectionString);
+        await con.OpenAsync();
+        var cmd = new SqlCommand(@"
+        INSERT INTO OrderStatusHistory (OrderId, Status, ChangedBy)
+        VALUES (@OrderId, @Status, @ChangedBy)", con);
+        cmd.Parameters.AddWithValue("@OrderId", orderId);
+        cmd.Parameters.AddWithValue("@Status", status);
+        cmd.Parameters.AddWithValue("@ChangedBy", changedBy);
+        await cmd.ExecuteNonQueryAsync();
+    }
 }

@@ -126,4 +126,28 @@ public class OrderController : ControllerBase
 
         return File(pdfBytes, "application/pdf", $"Invoice_Order_{id}.pdf");
     }
+
+    [HttpGet("{id}/history")]
+    [Authorize]
+    public async Task<IActionResult> GetOrderStatusHistory(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out int userId))
+            return Unauthorized();
+
+        var history = await _orderRepository.GetOrderStatusHistoryAsync(id);
+        if (history == null || history.Count == 0)
+            return NotFound("No history found.");
+
+        var result = history.Select(h => new OrderStatusHistoryDto
+        {
+            HistoryId = h.HistoryId,
+            Status = h.Status,
+            ChangedAt = h.ChangedAt,
+            ChangedBy = h.ChangedBy
+        }).ToList();
+
+        return Ok(result);
+    }
+
 }
