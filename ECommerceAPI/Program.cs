@@ -65,7 +65,8 @@ builder.Services.AddAuthorization(options =>
     var rights = new[]
     {
         "product.create", "product.edit", "product.delete",
-        "order.view", "order.manage", "user.manage"
+        "order.view", "order.manage", "user.manage",
+        "dashboard.view"
     };
     foreach (var right in rights)
     {
@@ -90,6 +91,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<InvoiceService>();
 
 builder.Services.AddCors(options =>
