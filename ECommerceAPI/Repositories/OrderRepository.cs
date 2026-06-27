@@ -347,7 +347,17 @@ public class OrderRepository : IOrderRepository
                 restoreCmd.Parameters.AddWithValue("@OrderId", orderId);
                 await restoreCmd.ExecuteNonQueryAsync();
             }
+            var historyQuery = @"
+             INSERT INTO OrderStatusHistory (OrderId, Status, ChangedBy)
+             VALUES (@OrderId, @Status, @ChangedBy)";
 
+            using (var historyCmd = new SqlCommand(historyQuery, conn, transaction))
+            {
+                historyCmd.Parameters.AddWithValue("@OrderId", orderId);
+                historyCmd.Parameters.AddWithValue("@Status", "Cancelled");
+                historyCmd.Parameters.AddWithValue("@ChangedBy", $"User:{userId}");
+                await historyCmd.ExecuteNonQueryAsync();
+            }
             await transaction.CommitAsync();
             return true;
         }
