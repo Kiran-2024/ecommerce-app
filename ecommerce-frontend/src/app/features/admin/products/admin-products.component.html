@@ -1,0 +1,155 @@
+<div class="admin-products">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h2>Product Management</h2>
+    <button class="btn-add" (click)="openAddModal()">+ Add Product</button>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="filters">
+    <input
+      type="text"
+      placeholder="Search products..."
+      [(ngModel)]="searchTerm"
+      (keyup.enter)="onSearch()"
+      class="search-input"
+    />
+    <select [(ngModel)]="selectedCategory" (change)="onSearch()" class="category-select">
+      <option value="">All Categories</option>
+      <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+    </select>
+    <button class="btn-search" (click)="onSearch()">Search</button>
+  </div>
+
+  <!-- Products Table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of products; let i = index">
+          <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+          <td>
+            <img [src]="p.imageUrl || 'https://placehold.co/50x50?text=No+Image'"
+                 alt="product" class="thumb" />
+          </td>
+          <td>{{ p.productName  }}</td>
+          <td>{{ p.categoryName }}</td>
+          <td>₹{{ p.price | number:'1.2-2' }}</td>
+          <td>
+            <span [class]="p.stock < 5 ? 'badge low' : 'badge ok'">{{ p.stock }}</span>
+          </td>
+          <td class="actions">
+            <button class="btn-edit" (click)="openEditModal(p)">Edit</button>
+            <button class="btn-delete" (click)="confirmDelete(p.id)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="products.length === 0">
+          <td colspan="7" class="no-data">No products found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+    <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+  </div>
+
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>{{ isEditMode ? 'Edit Product' : 'Add Product' }}</h3>
+
+    <form [formGroup]="productForm">
+
+      <div class="form-group">
+        <label>Name</label>
+        <input formControlName="name" type="text" placeholder="Product name" />
+        <span class="error" *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+          Name is required
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea formControlName="description" rows="3" placeholder="Product description"></textarea>
+        <span class="error" *ngIf="productForm.get('description')?.invalid && productForm.get('description')?.touched">
+          Description is required
+        </span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input formControlName="price" type="number" min="1" />
+          <span class="error" *ngIf="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+            Valid price required
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input formControlName="stock" type="number" min="0" />
+          <span class="error" *ngIf="productForm.get('stock')?.invalid && productForm.get('stock')?.touched">
+            Valid stock required
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select formControlName="categoryId">
+          <option value="">Select category</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+        <span class="error" *ngIf="productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched">
+          Category is required
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Product Image</label>
+        <input type="file" accept="image/*" (change)="onFileChange($event)" />
+        <div class="preview" *ngIf="previewUrl">
+          <img [src]="previewUrl" alt="preview" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn-save" (click)="saveProduct()" [disabled]="productForm.invalid">
+          {{ isEditMode ? 'Update' : 'Create' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm">
+  <div class="modal small">
+    <h3>Delete Product?</h3>
+    <p>This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+      <button class="btn-delete" (click)="deleteProduct()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<ngx-spinner bdColor="rgba(0,0,0,0.3)" size="medium" color="#1D9E75" type="ball-spin"></ngx-spinner>

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { rightsGuard } from './core/guards/rights.guard';
+import { AdminProductsComponent } from './features/admin/products/admin-products.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -11,13 +12,14 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./auth/auth.module').then(m => m.AuthModule)
   },
- {
-  path: 'addresses',
-  loadComponent: () => import('./features/address/address-book/address-book.component').then(m => m.AddressBookComponent),
-  canActivate: [authGuard]
-},
 
-  // HOME - home/home/home.component
+  {
+    path: 'addresses',
+    loadComponent: () =>
+      import('./features/address/address-book/address-book.component').then(m => m.AddressBookComponent),
+    canActivate: [authGuard]
+  },
+
   {
     path: 'home',
     loadComponent: () =>
@@ -25,25 +27,47 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-   // PRODUCTS - features/products
   {
     path: 'products',
     loadComponent: () =>
       import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent),
     canActivate: [authGuard]
   },
+
   {
     path: 'products/:id',
     loadComponent: () =>
       import('./features/products/product-detail/product-detail.component').then(m => m.ProductDetailComponent),
     canActivate: [authGuard]
   },
+
   {
-  path: 'cart',
-  loadComponent: () =>
-    import('./features/cart/cart/cart.component').then(m => m.CartComponent),
-  canActivate: [authGuard]
-},
+    path: 'cart',
+    loadComponent: () =>
+      import('./features/cart/cart/cart.component').then(m => m.CartComponent),
+    canActivate: [authGuard]
+  },
+
+  {
+    path: 'checkout',
+    loadComponent: () =>
+      import('./features/checkout/checkout/checkout.component').then(m => m.CheckoutComponent),
+    canActivate: [authGuard]
+  },
+
+  {
+    path: 'orders',
+    loadComponent: () =>
+      import('./orders/orders.component').then(m => m.OrdersComponent),
+    canActivate: [authGuard]
+  },
+
+  {
+    path: 'orders/:id',
+    loadComponent: () =>
+      import('./features/orders/order-detail/order-detail.component').then(m => m.OrderDetailComponent),
+    canActivate: [authGuard]
+  },
 
   {
     path: 'admin',
@@ -56,8 +80,7 @@ export const routes: Routes = [
       },
       {
         path: 'products',
-        loadComponent: () =>
-          import('./admin/products/product-list/product-list.component').then(m => m.ProductListComponent),
+        component: AdminProductsComponent,
         canActivate: [rightsGuard],
         data: { requiredRight: 'product.view' }
       },
@@ -84,29 +107,5 @@ export const routes: Routes = [
       import('./shared/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   },
 
-  {
-  path: 'checkout',
-  loadComponent: () =>
-    import('./features/checkout/checkout/checkout.component').then(
-      m => m.CheckoutComponent
-    ),
-  canActivate: [authGuard]
-},
-{
-  path: 'orders',
-  loadComponent: () =>
-    import('./orders/orders.component').then(m => m.OrdersComponent),
-  canActivate: [authGuard]
-},
-{
-  path: 'orders/:id',
-  loadComponent: () =>
-    import('./features/orders/order-detail/order-detail.component').then(
-      m => m.OrderDetailComponent
-    ),
-  canActivate: [authGuard]
-},
-
   { path: '**', redirectTo: 'auth/login' }
-
 ];

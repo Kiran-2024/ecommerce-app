@@ -4,6 +4,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { importProvidersFrom } from '@angular/core';
+import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
@@ -15,6 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor])),
     provideAnimations(),
+    provideToastr({ timeOut: 3000, positionClass: 'toast-top-right', preventDuplicates: true }),
     importProvidersFrom(NgxSpinnerModule.forRoot({ type: 'ball-scale-multiple' }))
   ]
 };

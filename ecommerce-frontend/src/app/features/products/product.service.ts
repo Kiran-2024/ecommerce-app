@@ -71,4 +71,21 @@ export class ProductService {
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(`${this.apiUrl}/categories`);
   }
+  createProduct(data: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/products`, data);
+}
+
+updateProduct(id: number, data: any): Observable<any> {
+  return this.http.put(`${this.apiUrl}/products/${id}`, data);
+}
+
+deleteProduct(id: number): Observable<any> {
+  return this.http.delete(`${this.apiUrl}/products/${id}`);
+}
+
+uploadImage(file: File): Observable<any> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return this.http.post(`${this.apiUrl}/products/upload-image`, formData);
+}
 }
