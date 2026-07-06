@@ -94,9 +94,9 @@ export const routes: Routes = [
       {
         path: 'orders',
         loadComponent: () =>
-          import('./admin/orders/order-list/order-list.component').then(m => m.OrderListComponent),
+          import('./admin/admin-orders/admin-orders.component').then(m => m.AdminOrdersComponent),
         canActivate: [rightsGuard],
-        data: { requiredRight: 'order.view' }
+        data: { requiredRight: 'order.manage' }
       }
     ]
   },

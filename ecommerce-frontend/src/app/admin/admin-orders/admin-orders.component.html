@@ -1,0 +1,99 @@
+<div class="admin-orders">
+  <div class="page-header">
+    <h2>Order Management</h2>
+    <span class="total-badge">Total: {{ totalCount }} orders</span>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card">
+    <div class="filters-row">
+      <input
+        type="text"
+        class="filter-input"
+        placeholder="Search by name or order ID..."
+        [(ngModel)]="searchText"
+        (keyup.enter)="applyFilters()"
+      />
+
+      <select class="filter-select" [(ngModel)]="selectedStatus">
+        <option value="">All Statuses</option>
+        <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+      </select>
+
+      <input type="date" class="filter-input" [(ngModel)]="fromDate" />
+      <input type="date" class="filter-input" [(ngModel)]="toDate" />
+
+      <button class="btn-apply" (click)="applyFilters()">Apply</button>
+      <button class="btn-reset" (click)="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">Loading orders...</div>
+
+  <!-- Table -->
+  <div class="table-wrapper" *ngIf="!loading">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Update Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td>#{{ order.orderId }}</td>
+          <td>
+            <div class="customer-name">{{ order.customerName }}</div>
+            <div class="customer-email">{{ order.customerEmail }}</div>
+          </td>
+          <td>{{ order.itemCount }} item(s)</td>
+          <td>₹{{ order.totalAmount | number:'1.2-2' }}</td>
+          <td>
+            <span class="payment-method">{{ order.paymentMethod }}</span>
+            <span [class]="order.paymentStatus === 'Paid' ? 'paid-badge' : 'unpaid-badge'">
+              {{ order.paymentStatus }}
+            </span>
+          </td>
+          <td>{{ order.createdAt | date:'dd MMM yyyy' }}</td>
+          <td>
+            <span [class]="'status-badge ' + getStatusClass(order.status)">
+              {{ order.status }}
+            </span>
+          </td>
+          <td>
+           <select
+    class="status-select"
+    [ngModel]="order.status"
+    name="status-{{ order.orderId }}"
+    [ngModelOptions]="{ standalone: true }"
+    (ngModelChange)="updateStatus(order, $event)"
+  >
+    <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+  </select>
+          </td>
+        </tr>
+        <tr *ngIf="orders.length === 0">
+          <td colspan="8" class="empty-state">No orders found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">‹ Prev</button>
+    <button
+      *ngFor="let p of getPages()"
+      (click)="changePage(p)"
+      [class.active]="p === currentPage"
+    >{{ p }}</button>
+    <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">Next ›</button>
+  </div>
+</div>
