@@ -1,14 +1,15 @@
 using ECommerceAPI.Authorization; 
 using ECommerceAPI.Data;
 using ECommerceAPI.Helpers;
-using Microsoft.OpenApi;
 using ECommerceAPI.Middleware;
 using ECommerceAPI.Repositories;
 using ECommerceAPI.Repositories.Interfaces;
 using ECommerceAPI.Services;
+using ECommerceApp.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;  
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using System.Text;
 
 
@@ -92,6 +93,7 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAdminOrderRepository, AdminOrderRepository>();
 builder.Services.AddScoped<InvoiceService>();
 
 builder.Services.AddCors(options =>
