@@ -19,6 +19,9 @@
       <li><a routerLink="/admin/orders" routerLinkActive="active">
   📦 Order Management
       </a></li>
+      <a routerLink="/admin/users" routerLinkActive="active" *ngIf="authService.hasRight('user.manage')">
+  User Management
+</a>
     </ul>
 
     <!-- Right Side -->

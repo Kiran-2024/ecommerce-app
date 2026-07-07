@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { rightsGuard } from './core/guards/rights.guard';
 import { AdminProductsComponent } from './features/admin/products/admin-products.component';
+import { AdminUsersComponent } from './admin/admin-users/admin-users.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -84,12 +85,11 @@ export const routes: Routes = [
         canActivate: [rightsGuard],
         data: { requiredRight: 'product.view' }
       },
-      {
+     {
         path: 'users',
-        loadComponent: () =>
-          import('./admin/users/user-list/user-list.component').then(m => m.UserListComponent),
-        canActivate: [rightsGuard],
-        data: { requiredRight: 'user.view' }
+        component: AdminUsersComponent,
+        canActivate: [authGuard, rightsGuard],
+        data: { right: 'user.manage' }
       },
       {
         path: 'orders',
@@ -100,6 +100,7 @@ export const routes: Routes = [
       }
     ]
   },
+  
 
   {
     path: 'unauthorized',

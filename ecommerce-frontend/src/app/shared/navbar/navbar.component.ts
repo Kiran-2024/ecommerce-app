@@ -19,7 +19,7 @@ export class NavbarComponent implements OnInit {
 
   constructor(
     private cartService: CartService,
-    private authService: AuthService,
+    public  authService: AuthService,
     private router: Router
   ) {}
 

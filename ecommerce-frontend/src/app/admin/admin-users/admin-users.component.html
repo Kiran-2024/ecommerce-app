@@ -1,0 +1,118 @@
+<div class="admin-users-container">
+  <h2>User Management</h2>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      placeholder="Search by name, email, phone..."
+      (keyup.enter)="applyFilters()"
+      class="filter-input"
+    />
+
+    <select [(ngModel)]="selectedRole" class="filter-select">
+      <option value="">All Roles</option>
+      <option *ngFor="let r of roles" [value]="r.roleName">{{ r.roleName }}</option>
+    </select>
+
+    <button class="btn btn-primary" (click)="applyFilters()">Apply</button>
+    <button class="btn btn-secondary" (click)="resetFilters()">Reset</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">Loading users...</div>
+
+  <!-- Table -->
+  <table class="users-table" *ngIf="!loading">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Role</th>
+        <th>Email Verified</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.userId }}</td>
+        <td>{{ user.fullName }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.phoneNumber }}</td>
+        <td>
+          <span class="role-badge" [ngClass]="user.role === 'Admin' ? 'badge-admin' : 'badge-customer'">
+            {{ user.role }}
+          </span>
+        </td>
+        <td>
+          <span [ngClass]="user.isEmailVerified ? 'badge-verified' : 'badge-unverified'">
+            {{ user.isEmailVerified ? 'Verified' : 'Not Verified' }}
+          </span>
+        </td>
+        <td>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="user.isActive"
+              (change)="toggleStatus(user)"
+            />
+            <span class="slider"></span>
+          </label>
+          <span class="status-text">{{ user.isActive ? 'Active' : 'Inactive' }}</span>
+        </td>
+        <td>{{ user.createdAt | date: 'dd-MM-yyyy hh:mm a' }}</td>
+        <td>
+          <select
+            [ngModel]="user.role"
+            [ngModelOptions]="{ standalone: true }"
+            (change)="changeRole(user, $any($event.target).value)"
+            class="role-select"
+          >
+            <option *ngFor="let r of roles" [value]="r.roleName">{{ r.roleName }}</option>
+          </select>
+        </td>
+      </tr>
+
+      <tr *ngIf="users.length === 0">
+        <td colspan="9" class="no-data">No users found</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="!loading && totalPages > 1">
+    <button
+      class="page-btn"
+      [disabled]="currentPage === 1"
+      (click)="changePage(currentPage - 1)"
+    >
+      Prev
+    </button>
+
+    <button
+      *ngFor="let p of getPages()"
+      class="page-btn"
+      [class.active]="p === currentPage"
+      (click)="changePage(p)"
+    >
+      {{ p }}
+    </button>
+
+    <button
+      class="page-btn"
+      [disabled]="currentPage === totalPages"
+      (click)="changePage(currentPage + 1)"
+    >
+      Next
+    </button>
+  </div>
+
+  <div class="total-count" *ngIf="!loading">
+    Total Users: {{ totalCount }}
+  </div>
+</div>
