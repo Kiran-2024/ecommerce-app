@@ -11,5 +11,8 @@ namespace ECommerceAPI.Repositories.Interfaces
         Task<bool> UpdateRoleAsync(int roleId, string roleName);
         Task<bool> DeleteRoleAsync(int roleId);
         Task<List<Rights>> GetRightsByRoleIdAsync(int roleId);
+
+        Task<bool> AssignRightsToRoleAsync(int roleId, List<int> rightIds); // 🆕 Day 42
+
     }
 }

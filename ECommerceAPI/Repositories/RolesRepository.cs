@@ -62,9 +62,15 @@ namespace ECommerceAPI.Repositories
         // ✅ Role delete చేయి
         public async Task<bool> DeleteRoleAsync(int roleId)
         {
-            const string sql = "DELETE FROM Roles WHERE RoleId = @RoleId";
-            var ps = new[] { new SqlParameter("@RoleId", roleId) };
-            var rows = await ExecuteNonQueryAsync(sql, ps);
+            // 1. ముందు ఈ role కి ఉన్న RoleRights mappings తీసేయి (FK conflict avoid చేయడానికి)
+            const string deleteRightsSql = "DELETE FROM RoleRights WHERE RoleId = @RoleId";
+            var rightsParams = new[] { new SqlParameter("@RoleId", roleId) };
+            await ExecuteNonQueryAsync(deleteRightsSql, rightsParams);
+
+            // 2. ఇప్పుడు Role delete చేయి
+            const string deleteRoleSql = "DELETE FROM Roles WHERE RoleId = @RoleId";
+            var roleParams = new[] { new SqlParameter("@RoleId", roleId) };
+            var rows = await ExecuteNonQueryAsync(deleteRoleSql, roleParams);
             return rows > 0;
         }
 
@@ -82,6 +88,27 @@ namespace ECommerceAPI.Repositories
                 RightName = r["RightName"].ToString()!,
                 Description = r["Description"] as string
             });
+        }
+        // ✅ Role కి Rights assign చేయి (existing తీసేసి కొత్తవి insert చేస్తుంది - Day41 role-assign pattern లాగే)
+        public async Task<bool> AssignRightsToRoleAsync(int roleId, List<int> rightIds)
+        {
+            // 1. ఈ role కి ఉన్న old rights తీసేయి
+            const string deleteSql = "DELETE FROM RoleRights WHERE RoleId = @RoleId";
+            var deleteParams = new[] { new SqlParameter("@RoleId", roleId) };
+            await ExecuteNonQueryAsync(deleteSql, deleteParams);
+
+            // 2. కొత్త rights ప్రతి ఒక్కటి insert చేయి
+            const string insertSql = "INSERT INTO RoleRights (RoleId, RightId) VALUES (@RoleId, @RightId)";
+            foreach (var rightId in rightIds)
+            {
+                var insertParams = new[]
+                {
+            new SqlParameter("@RoleId", roleId),
+            new SqlParameter("@RightId", rightId)
+        };
+                await ExecuteNonQueryAsync(insertSql, insertParams);
+            }
+            return true;
         }
     }
 }

@@ -67,7 +67,8 @@ builder.Services.AddAuthorization(options =>
     {
         "product.create", "product.edit", "product.delete",
         "order.view", "order.manage", "user.manage",
-        "dashboard.view"
+        "dashboard.view",
+        "role.manage"
     };
     foreach (var right in rights)
     {
