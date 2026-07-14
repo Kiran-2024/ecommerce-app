@@ -1,0 +1,51 @@
+.rights-matrix-container {
+  padding: 20px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.rights-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 900px;
+}
+
+.rights-table th,
+.rights-table td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.role-col {
+  text-align: left;
+  font-weight: 600;
+  min-width: 140px;
+  background: #f9f9f9;
+}
+
+.action-col {
+  min-width: 90px;
+}
+
+.checkbox-cell input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+thead th {
+  background: #f1f1f1;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  padding: 10px 6px;
+}
+
+button {
+  padding: 4px 10px;
+  cursor: pointer;
+}

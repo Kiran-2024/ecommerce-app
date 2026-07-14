@@ -1,0 +1,39 @@
+<div class="rights-matrix-container">
+  <h2>Rights Management</h2>
+
+  <div *ngIf="loading" class="loading">Loading rights matrix...</div>
+
+  <div *ngIf="!loading" class="table-wrapper">
+    <table class="rights-table">
+      <thead>
+        <tr>
+          <th class="role-col">Role</th>
+          <th *ngFor="let right of rights" [title]="right.description">
+            {{ right.rightName }}
+          </th>
+          <th class="action-col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of roles">
+          <td class="role-col">{{ role.roleName }}</td>
+          <td *ngFor="let right of rights" class="checkbox-cell">
+            <input
+              type="checkbox"
+              [checked]="matrix[role.roleId][right.rightId]"
+              (change)="toggleRight(role.roleId, right.rightId)"
+            />
+          </td>
+          <td class="action-col">
+            <button
+              (click)="saveRoleRights(role.roleId)"
+              [disabled]="saving[role.roleId]"
+            >
+              {{ saving[role.roleId] ? 'Saving...' : 'Save' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

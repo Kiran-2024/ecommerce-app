@@ -85,7 +85,7 @@ export const routes: Routes = [
         canActivate: [rightsGuard],
         data: { requiredRight: 'product.view' }
       },
-     {
+      {
         path: 'users',
         component: AdminUsersComponent,
         canActivate: [authGuard, rightsGuard],
@@ -97,10 +97,16 @@ export const routes: Routes = [
           import('./admin/admin-orders/admin-orders.component').then(m => m.AdminOrdersComponent),
         canActivate: [rightsGuard],
         data: { requiredRight: 'order.manage' }
-      }
+      },
+      {
+        path: 'rights',
+        loadComponent: () =>
+          import('./admin/admin-rights/admin-rights.component').then(m => m.AdminRightsComponent),
+        canActivate: [rightsGuard],
+        data: { requiredRight: 'role.manage' }
+      },
     ]
   },
-  
 
   {
     path: 'unauthorized',
