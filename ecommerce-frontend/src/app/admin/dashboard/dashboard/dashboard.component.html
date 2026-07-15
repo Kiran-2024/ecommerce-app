@@ -1,1 +1,110 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  <h2>Admin Dashboard</h2>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <p>Loading dashboard...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="stats && !loading" class="dashboard-content">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Total Orders</span>
+        <span class="kpi-value">{{ stats.totalOrders }}</span>
+      </div>
+      <div class="kpi-card revenue">
+        <span class="kpi-label">Total Revenue</span>
+        <span class="kpi-value">₹{{ stats.totalRevenue | number:'1.2-2' }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Total Users</span>
+        <span class="kpi-value">{{ stats.totalUsers }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Total Products</span>
+        <span class="kpi-value">{{ stats.totalProducts }}</span>
+      </div>
+      <div class="kpi-card pending">
+        <span class="kpi-label">Pending Orders</span>
+        <span class="kpi-value">{{ stats.pendingOrders }}</span>
+      </div>
+      <div class="kpi-card cancelled">
+        <span class="kpi-label">Cancelled Orders</span>
+        <span class="kpi-value">{{ stats.cancelledOrders }}</span>
+      </div>
+    </div>
+     <div class="widget chart-widget">
+      <h3>Order Status Distribution</h3>
+      <div class="chart-container">
+        <canvas #orderStatusChart></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Orders + Low Stock side by side -->
+    <div class="widgets-grid">
+
+      <!-- Recent Orders -->
+      <div class="widget">
+        <h3>Recent Orders</h3>
+        <table class="dashboard-table" *ngIf="stats.recentOrders.length > 0; else noOrders">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of stats.recentOrders">
+              <td>#{{ order.orderId }}</td>
+              <td>{{ order.customerName }}</td>
+              <td>₹{{ order.totalAmount | number:'1.2-2' }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusClass(order.orderStatus)">
+                  {{ order.orderStatus }}
+                </span>
+              </td>
+              <td>{{ order.createdAt | date:'dd-MMM-yyyy HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noOrders>
+          <p class="empty-state">No recent orders</p>
+        </ng-template>
+      </div>
+
+      <!-- Low Stock Products -->
+      <div class="widget">
+        <h3>Low Stock Products</h3>
+        <table class="dashboard-table" *ngIf="stats.lowStockProducts.length > 0; else noLowStock">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Stock Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of stats.lowStockProducts">
+              <td>{{ product.productName }}</td>
+              <td class="stock-qty">{{ product.stockQuantity }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noLowStock>
+          <p class="empty-state">No low stock items</p>
+        </ng-template>
+      </div>
+
+    </div>
+  </div>
+</div>
