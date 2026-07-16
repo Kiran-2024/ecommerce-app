@@ -11,6 +11,8 @@ namespace ECommerceAPI.Repositories
         Task<int> InsertAsync(CreateCategoryDto dto);
         Task<bool> UpdateAsync(int id, UpdateCategoryDto dto);
         Task<bool> DeleteAsync(int id);
+
+        Task<IEnumerable<CategoryDto>> GetAllForAdminAsync();
     }
 
     public class CategoryRepository : ICategoryRepository
@@ -101,6 +103,27 @@ namespace ECommerceAPI.Repositories
             cmd.Parameters.AddWithValue("@Id", id);
             await conn.OpenAsync();
             return await cmd.ExecuteNonQueryAsync() > 0;
+        }
+
+        public async Task<IEnumerable<CategoryDto>> GetAllForAdminAsync()
+        {
+            var list = new List<CategoryDto>();
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(
+                "SELECT * FROM Categories", conn);
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                list.Add(new CategoryDto
+                {
+                    CategoryId = (int)reader["CategoryId"],
+                    Name = reader["CategoryName"].ToString(),
+                    Description = reader["Description"].ToString(),
+                    IsActive = (bool)reader["IsActive"]
+                });
+            }
+            return list;
         }
     }
 }

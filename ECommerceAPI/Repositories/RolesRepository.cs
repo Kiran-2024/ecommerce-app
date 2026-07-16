@@ -110,5 +110,15 @@ namespace ECommerceAPI.Repositories
             }
             return true;
         }
+        public async Task<List<Rights>> GetAllRightsAsync()
+        {
+            const string sql = "SELECT RightId, RightName, Description FROM Rights ORDER BY RightId";
+            return await ExecuteQueryAsync(sql, null, r => new Rights
+            {
+                RightId = (int)r["RightId"],
+                RightName = r["RightName"].ToString()!,
+                Description = r["Description"] as string
+            });
+        }
     }
 }

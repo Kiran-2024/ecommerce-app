@@ -63,5 +63,12 @@ namespace ECommerceAPI.Controllers
             if (!success) return NotFound("Category not found");
             return Ok(new { message = "Category deleted" });
         }
+        [HttpGet("admin/all")]
+        [Authorize]
+        public async Task<IActionResult> GetAllForAdmin()
+        {
+            var categories = await _repo.GetAllForAdminAsync();
+            return Ok(categories);
+        }
     }
 }

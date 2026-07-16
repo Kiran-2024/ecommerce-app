@@ -14,5 +14,7 @@ namespace ECommerceAPI.Repositories.Interfaces
 
         Task<bool> AssignRightsToRoleAsync(int roleId, List<int> rightIds); // 🆕 Day 42
 
+        Task<List<Rights>> GetAllRightsAsync();
+
     }
 }

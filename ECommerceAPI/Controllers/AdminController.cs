@@ -147,5 +147,19 @@ namespace ECommerceAPI.Controllers
             if (!result) return BadRequest(new { message = "Failed to assign rights" });
             return Ok(new { message = "Rights assigned successfully" });
         }
+
+        [HttpGet("rights")]
+        [HasRight("role.manage")]
+        public async Task<IActionResult> GetAllRights()
+        {
+            var rights = await _rolesRepository.GetAllRightsAsync();
+            var mapped = rights.Select(r => new RoleRightDto
+            {
+                RightId = r.RightId,
+                RightName = r.RightName,
+                Description = r.Description
+            });
+            return Ok(mapped);
+        }
     }
 }
