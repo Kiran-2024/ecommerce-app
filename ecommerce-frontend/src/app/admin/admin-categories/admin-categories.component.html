@@ -1,0 +1,86 @@
+<div class="admin-categories-container">
+  <div class="header-row">
+    <h2>Category Management</h2>
+    <button class="btn-primary" (click)="openAddModal()">+ Add Category</button>
+  </div>
+
+  <div *ngIf="errorMsg" class="error-msg">{{ errorMsg }}</div>
+
+  <div *ngIf="isLoading" class="loading">Loading categories...</div>
+
+  <table class="categories-table" *ngIf="!isLoading && categories.length > 0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let cat of categories">
+        <td>{{ cat.categoryId }}</td>
+        <td>{{ cat.name }}</td>
+        <td>{{ cat.description }}</td>
+        <td>
+          <span class="badge" [ngClass]="cat.isActive ? 'badge-active' : 'badge-inactive'">
+            {{ cat.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+        <td class="actions-cell">
+          <button class="btn-edit" (click)="openEditModal(cat)">Edit</button>
+          <button class="btn-toggle" (click)="toggleActive(cat)">
+            {{ cat.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          <button class="btn-delete" (click)="confirmDelete(cat)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!isLoading && categories.length === 0" class="no-data">
+    No categories found.
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3>{{ isEditMode ? 'Edit Category' : 'Add Category' }}</h3>
+
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" [(ngModel)]="formData.name" placeholder="Category name" />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="formData.description" placeholder="Description"></textarea>
+      </div>
+
+      <div class="form-group" *ngIf="isEditMode">
+        <label>
+          <input type="checkbox" [(ngModel)]="formData.isActive" />
+          Active
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button class="btn-primary" (click)="saveCategory()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="modal-box small" (click)="$event.stopPropagation()">
+      <h3>Confirm Delete</h3>
+      <p>Are you sure you want to delete "{{ categoryToDelete?.name }}"?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-delete" (click)="deleteCategory()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

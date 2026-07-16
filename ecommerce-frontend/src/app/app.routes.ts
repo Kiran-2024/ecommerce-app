@@ -105,6 +105,13 @@ export const routes: Routes = [
         canActivate: [rightsGuard],
         data: { requiredRight: 'role.manage' }
       },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./admin/admin-categories/admin-categories.component').then(m => m.AdminCategoriesComponent),
+        canActivate: [rightsGuard],
+        data: { requiredRight: 'category.edit' }
+      }
     ]
   },
 
