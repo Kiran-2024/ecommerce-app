@@ -111,6 +111,12 @@ export const routes: Routes = [
           import('./admin/admin-categories/admin-categories.component').then(m => m.AdminCategoriesComponent),
         canActivate: [rightsGuard],
         data: { requiredRight: 'category.edit' }
+      },
+      {
+        path: 'reports',
+        loadComponent: () => import('./admin/admin-reports/admin-reports.component').then(m => m.AdminReportsComponent),
+        canActivate: [authGuard, rightsGuard],
+        data: { requiredRight: 'reports.view' }
       }
     ]
   },

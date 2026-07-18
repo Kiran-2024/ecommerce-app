@@ -68,7 +68,8 @@ builder.Services.AddAuthorization(options =>
         "product.create", "product.edit", "product.delete",
         "order.view", "order.manage", "user.manage",
         "dashboard.view",
-        "role.manage"
+        "role.manage",
+        "reports.view"
     };
     foreach (var right in rights)
     {
@@ -95,6 +96,7 @@ builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminOrderRepository, AdminOrderRepository>();
+builder.Services.AddScoped<AdminReportsRepository>();
 builder.Services.AddScoped<InvoiceService>();
 
 builder.Services.AddCors(options =>

@@ -1,0 +1,106 @@
+<div class="reports-container">
+  <h2>Reports & Analytics</h2>
+
+  <!-- Date Filter -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Start Date</label>
+      <input type="date" [(ngModel)]="startDate" name="startDate" />
+    </div>
+    <div class="filter-group">
+      <label>End Date</label>
+      <input type="date" [(ngModel)]="endDate" name="endDate" />
+    </div>
+    <button class="apply-btn" (click)="applyFilter()">Apply</button>
+  </div>
+
+  <div *ngIf="errorMsg" class="error-msg">{{ errorMsg }}</div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'sales'" (click)="setTab('sales')">Sales Report</button>
+    <button [class.active]="activeTab === 'category'" (click)="setTab('category')">Revenue by Category</button>
+    <button [class.active]="activeTab === 'status'" (click)="setTab('status')">Order Status Summary</button>
+  </div>
+
+  <div *ngIf="loading" class="loading-msg">Loading...</div>
+
+  <!-- Sales Tab -->
+  <div *ngIf="activeTab === 'sales' && !loading" class="tab-content">
+    <div class="tab-header">
+      <span>{{ salesData.length }} record(s)</span>
+      <button class="export-btn" (click)="exportSalesCsv()" [disabled]="salesData.length === 0">Export CSV</button>
+    </div>
+    <table class="report-table" *ngIf="salesData.length > 0; else noSalesData">
+      <thead>
+        <tr>
+          <th>Order Date</th>
+          <th>Total Orders</th>
+          <th>Total Revenue</th>
+          <th>Avg Order Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of salesData">
+          <td>{{ row.orderDate | date:'dd-MMM-yyyy' }}</td>
+          <td>{{ row.totalOrders }}</td>
+          <td>₹{{ row.totalRevenue | number:'1.2-2' }}</td>
+          <td>₹{{ row.avgOrderValue | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noSalesData><p class="empty-msg">No data for selected range.</p></ng-template>
+  </div>
+
+  <!-- Category Tab -->
+  <div *ngIf="activeTab === 'category' && !loading" class="tab-content">
+    <div class="tab-header">
+      <span>{{ categoryData.length }} record(s)</span>
+      <button class="export-btn" (click)="exportCategoryCsv()" [disabled]="categoryData.length === 0">Export CSV</button>
+    </div>
+    <table class="report-table" *ngIf="categoryData.length > 0; else noCategoryData">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Total Orders</th>
+          <th>Units Sold</th>
+          <th>Total Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of categoryData">
+          <td>{{ row.categoryName }}</td>
+          <td>{{ row.totalOrders }}</td>
+          <td>{{ row.unitsSold }}</td>
+          <td>₹{{ row.totalRevenue | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noCategoryData><p class="empty-msg">No data for selected range.</p></ng-template>
+  </div>
+
+  <!-- Status Tab -->
+  <div *ngIf="activeTab === 'status' && !loading" class="tab-content">
+    <div class="tab-header">
+      <span>{{ statusData.length }} record(s)</span>
+      <button class="export-btn" (click)="exportStatusCsv()" [disabled]="statusData.length === 0">Export CSV</button>
+    </div>
+    <table class="report-table" *ngIf="statusData.length > 0; else noStatusData">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Order Count</th>
+          <th>Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of statusData">
+          <td><span class="status-badge" [ngClass]="row.status.toLowerCase()">{{ row.status }}</span></td>
+          <td>{{ row.orderCount }}</td>
+          <td>₹{{ row.totalAmount | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noStatusData><p class="empty-msg">No data for selected range.</p></ng-template>
+  </div>
+</div>
