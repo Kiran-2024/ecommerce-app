@@ -50,5 +50,22 @@ namespace ECommerceAPI.Repositories.Base
                 cmd.Parameters.AddRange(parameters);
             return await cmd.ExecuteScalarAsync();
         }
+
+        protected async Task ExecuteInTransactionAsync(Func<SqlConnection, SqlTransaction, Task> action)
+        {
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+            using var tx = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                await action(conn, tx);
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

@@ -35,28 +35,28 @@ namespace ECommerceAPI.Repositories
             int totalCount = 0;
             int offset = (page - 1) * pageSize;
 
-            // Dynamic WHERE build
-            var where = new List<string> { "IsActive = 1" };
+            // Dynamic WHERE build — అన్నింటికీ p. prefix
+            var where = new List<string> { "p.IsActive = 1" };
             var parameters = new List<SqlParameter>();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                where.Add("(ProductName LIKE @Search OR Description LIKE @Search)");
+                where.Add("(p.ProductName LIKE @Search OR p.Description LIKE @Search)");
                 parameters.Add(new SqlParameter("@Search", $"%{search}%"));
             }
             if (categoryId.HasValue)
             {
-                where.Add("CategoryId = @CategoryId");
+                where.Add("p.CategoryId = @CategoryId");
                 parameters.Add(new SqlParameter("@CategoryId", categoryId.Value));
             }
             if (minPrice.HasValue)
             {
-                where.Add("Price >= @MinPrice");
+                where.Add("p.Price >= @MinPrice");
                 parameters.Add(new SqlParameter("@MinPrice", minPrice.Value));
             }
             if (maxPrice.HasValue)
             {
-                where.Add("Price <= @MaxPrice");
+                where.Add("p.Price <= @MaxPrice");
                 parameters.Add(new SqlParameter("@MaxPrice", maxPrice.Value));
             }
 
@@ -65,9 +65,11 @@ namespace ECommerceAPI.Repositories
             using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
 
-            // Total count
+            // Total count — ఇక్కడ కూడా JOIN + p. prefix కావాలి
             using (var countCmd = new SqlCommand(
-                $"SELECT COUNT(*) FROM Products WHERE {whereClause}", conn))
+                $@"SELECT COUNT(*) FROM Products p
+           LEFT JOIN Categories c ON p.CategoryId = c.CategoryId
+           WHERE {whereClause}", conn))
             {
                 countCmd.Parameters.AddRange(parameters.Select(p =>
                     new SqlParameter(p.ParameterName, p.Value)).ToArray());
@@ -76,11 +78,12 @@ namespace ECommerceAPI.Repositories
 
             // Paged data
             using var cmd = new SqlCommand($@"
-        SELECT ProductId, ProductName, Description, Price, DiscountPrice,
-               Stock, ImageUrl, CategoryId, IsActive, CreatedAt
-        FROM Products
+        SELECT p.ProductId, p.ProductName, p.Description, p.Price, p.DiscountPrice,
+               p.Stock, p.ImageUrl, p.CategoryId, c.CategoryName, p.IsActive, p.CreatedAt
+        FROM Products p
+        LEFT JOIN Categories c ON p.CategoryId = c.CategoryId
         WHERE {whereClause}
-        ORDER BY CreatedAt DESC
+        ORDER BY p.CreatedAt DESC
         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY", conn);
 
             cmd.Parameters.AddRange(parameters.Select(p =>
@@ -101,10 +104,11 @@ namespace ECommerceAPI.Repositories
         {
             using var conn = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand(@"
-                SELECT ProductId, ProductName, Description, Price, DiscountPrice,
-                       Stock, ImageUrl, CategoryId, IsActive, CreatedAt
-                FROM Products 
-                WHERE ProductId = @Id AND IsActive = 1", conn);
+               SELECT p.ProductId, p.ProductName, p.Description, p.Price, p.DiscountPrice,
+           p.Stock, p.ImageUrl, p.CategoryId, c.CategoryName, p.IsActive, p.CreatedAt
+    FROM Products p
+    LEFT JOIN Categories c ON p.CategoryId = c.CategoryId
+    WHERE p.ProductId = @Id AND p.IsActive = 1", conn);
             cmd.Parameters.AddWithValue("@Id", id);
             await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();
@@ -187,6 +191,7 @@ namespace ECommerceAPI.Repositories
                 Stock = (int)reader["Stock"],
                 ImageUrl = reader["ImageUrl"].ToString(),
                 CategoryId = (int)reader["CategoryId"],
+                CategoryName = reader["CategoryName"] == DBNull.Value ? null : reader["CategoryName"].ToString(),  // 🆕
                 IsActive = (bool)reader["IsActive"],
                 CreatedAt = (DateTime)reader["CreatedAt"]
             };

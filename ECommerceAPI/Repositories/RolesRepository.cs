@@ -92,23 +92,35 @@ namespace ECommerceAPI.Repositories
         // ✅ Role కి Rights assign చేయి (existing తీసేసి కొత్తవి insert చేస్తుంది - Day41 role-assign pattern లాగే)
         public async Task<bool> AssignRightsToRoleAsync(int roleId, List<int> rightIds)
         {
-            // 1. ఈ role కి ఉన్న old rights తీసేయి
-            const string deleteSql = "DELETE FROM RoleRights WHERE RoleId = @RoleId";
-            var deleteParams = new[] { new SqlParameter("@RoleId", roleId) };
-            await ExecuteNonQueryAsync(deleteSql, deleteParams);
-
-            // 2. కొత్త rights ప్రతి ఒక్కటి insert చేయి
-            const string insertSql = "INSERT INTO RoleRights (RoleId, RightId) VALUES (@RoleId, @RightId)";
-            foreach (var rightId in rightIds)
+            try
             {
-                var insertParams = new[]
+                await ExecuteInTransactionAsync(async (conn, tx) =>
                 {
-            new SqlParameter("@RoleId", roleId),
-            new SqlParameter("@RightId", rightId)
-        };
-                await ExecuteNonQueryAsync(insertSql, insertParams);
+                    // 1. Old rights తీసేయి (అదే transaction లో)
+                    const string deleteSql = "DELETE FROM RoleRights WHERE RoleId = @RoleId";
+                    using (var deleteCmd = new SqlCommand(deleteSql, conn, tx))
+                    {
+                        deleteCmd.Parameters.AddWithValue("@RoleId", roleId);
+                        await deleteCmd.ExecuteNonQueryAsync();
+                    }
+
+                    // 2. కొత్త rights insert చేయి (అదే transaction లో)
+                    const string insertSql = "INSERT INTO RoleRights (RoleId, RightId) VALUES (@RoleId, @RightId)";
+                    foreach (var rightId in rightIds)
+                    {
+                        using var insertCmd = new SqlCommand(insertSql, conn, tx);
+                        insertCmd.Parameters.AddWithValue("@RoleId", roleId);
+                        insertCmd.Parameters.AddWithValue("@RightId", rightId);
+                        await insertCmd.ExecuteNonQueryAsync();
+                    }
+                });
+                return true;
             }
-            return true;
+            catch
+            {
+                // Insert మధ్యలో fail అయితే rollback అయిపోతుంది — పాత rights safe గా ఉంటాయి
+                return false;
+            }
         }
         public async Task<List<Rights>> GetAllRightsAsync()
         {

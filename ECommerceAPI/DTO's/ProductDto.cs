@@ -11,6 +11,8 @@ namespace ECommerceAPI.DTOs
         public decimal? DiscountPrice { get; set; }
         public int Stock { get; set; }
         public string ImageUrl { get; set; }
+
+        public string? CategoryName { get; set; }
         public int CategoryId { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -62,6 +64,7 @@ namespace ECommerceAPI.DTOs
 
         [Required]
         public int CategoryId { get; set; }
+
 
         public bool IsActive { get; set; }
     }
