@@ -40,8 +40,7 @@
         <tr *ngFor="let p of products; let i = index">
           <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
           <td>
-            <img [src]="p.imageUrl || 'https://placehold.co/50x50?text=No+Image'"
-                 alt="product" class="thumb" />
+           <img [src]="getImageUrl(p.imageUrl)" alt="product" class="thumb" />
           </td>
           <td>{{ p.productName  }}</td>
           <td>{{ p.categoryName }}</td>

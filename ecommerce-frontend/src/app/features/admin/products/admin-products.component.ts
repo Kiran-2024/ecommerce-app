@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ProductService } from '../../products/product.service';
 import { NgxSpinnerModule, NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-admin-products',
@@ -52,6 +53,11 @@ export class AdminProductsComponent implements OnInit {
     this.loadCategories();
     this.loadProducts();
   }
+  getImageUrl(imageUrl: string | null): string {
+  if (!imageUrl) return 'https://placehold.co/50x50?text=No+Image';
+  if (imageUrl.startsWith('http')) return imageUrl; // already full URL or base64 preview
+  return `${environment.apiUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+}
 
   loadCategories() {
     this.productService.getCategories().subscribe({
@@ -110,7 +116,7 @@ export class AdminProductsComponent implements OnInit {
       categoryId: product.categoryId,
       imageUrl: product.imageUrl
     });
-    this.previewUrl = product.imageUrl;
+    this.previewUrl = this.getImageUrl(product.imageUrl);
     this.selectedFile = null;
     this.showModal = true;
   }
@@ -200,4 +206,5 @@ export class AdminProductsComponent implements OnInit {
   get totalPages() {
     return Math.ceil(this.totalCount / this.pageSize);
   }
+
 }

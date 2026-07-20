@@ -89,7 +89,7 @@ export const routes: Routes = [
         path: 'users',
         component: AdminUsersComponent,
         canActivate: [authGuard, rightsGuard],
-        data: { right: 'user.manage' }
+        data: { requiredRight: 'user.manage' }
       },
       {
         path: 'orders',
